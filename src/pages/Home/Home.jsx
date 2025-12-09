@@ -3,9 +3,8 @@ import React from 'react';
 const Home = () => {
     return (
         <div>
-            <h2>
-                Home page
-            </h2>
+            <h2 className="sr-only">Home</h2>
+
         </div>
     );
 };
