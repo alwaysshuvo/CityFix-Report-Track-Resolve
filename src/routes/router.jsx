@@ -1,64 +1,61 @@
-// src/routes/router.jsx
 
 import { createBrowserRouter } from "react-router-dom";
 
-// Layouts
 import MainLayout from "../layouts/MainLayout";
+import DashboardLayout from "../layouts/DashboardLayout";
 
-// Pages
 import Home from "../pages/Home/Home";
 import AllIssues from "../pages/AllIssues/AllIssues";
 import Contact from "../pages/Contact/Contact";
+import About from "../pages/About/About";
+import Faq from "../pages/FAQ/Faq";
+
 import Login from "../pages/Login/Login";
 import Register from "../pages/Register/Register";
-import NotFound from "../pages/NotFound/NotFound";
-import IssueDetails from "../pages/IssueDetails/IssueDetails";
-import DashboardLayout from "../layouts/DashboardLayout";
+
 import UserDashboard from "../pages/Dashboard/UserDashboard";
 import MyIssues from "../pages/Dashboard/MyIssues";
 import ReportIssue from "../pages/Dashboard/ReportIssue";
 import Profile from "../pages/Dashboard/Profile";
-import Faq from "../pages/FAQ/Faq";
-import About from "../pages/About/About";
+
+import NotFound from "../pages/NotFound/NotFound";
+import IssueCard from "../pages/IssueCard/IssueCard";
 
 const router = createBrowserRouter([
+
+  // Public Website Routes
+
   {
     path: "/",
     element: <MainLayout />,
-
     children: [
-
       {
-        index: true,
+        index: true, 
         element: <Home />,
       },
-
       {
         path: "all-issues",
         element: <AllIssues />,
       },
       {
-        path: "about",
-        element: <About />,
-      },
-
-      {
         path: "contact",
         element: <Contact />,
       },
-
+      {
+        path: "about",
+        element: <About />,
+      },
+      {
+        path: "faq",
+        element: <Faq />,
+      },
       {
         path: "issue/:id",
-        element: <IssueDetails />,
+        element: <IssueCard />,
       },
-
       {
         path: "login",
         element: <Login />,
-      },
-      {
-        path: "Faq",
-        element: <Faq />,
       },
       {
         path: "register",
@@ -67,14 +64,15 @@ const router = createBrowserRouter([
     ],
   },
 
+
+  // Dashboard Routes
  
   {
     path: "/dashboard",
     element: <DashboardLayout />,
-
     children: [
       {
-        index: true,
+        index: true, 
         element: <UserDashboard />,
       },
       {
@@ -91,7 +89,7 @@ const router = createBrowserRouter([
       },
     ],
   },
-
+// 404 Page Error
   {
     path: "*",
     element: <NotFound />,

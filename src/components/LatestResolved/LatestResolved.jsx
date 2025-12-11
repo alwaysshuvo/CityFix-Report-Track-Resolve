@@ -11,21 +11,21 @@ const LatestResolved = () => {
         title: "Streetlight Fixed",
         location: "Uttara, Dhaka",
         status: "Resolved",
-        image: "https://i.ibb.co/4R0gH4d/light.jpg",
+        image: "https://i.pinimg.com/1200x/7e/34/a5/7e34a57c1144a21fe1ffdde78ab4eb80.jpg",
       },
       {
         _id: "2",
         title: "Broken Road Repaired",
         location: "Mirpur 10",
         status: "Resolved",
-        image: "https://i.ibb.co/Cv3yS8q/road.jpg",
+        image: "https://i.pinimg.com/1200x/7e/34/a5/7e34a57c1144a21fe1ffdde78ab4eb80.jpg",
       },
       {
         _id: "3",
         title: "Garbage Cleaned",
         location: "Bashundhara R/A",
         status: "Resolved",
-        image: "https://i.ibb.co/fDQzHh7/clean.jpg",
+        image: "https://i.pinimg.com/1200x/7e/34/a5/7e34a57c1144a21fe1ffdde78ab4eb80.jpg",
       },
     ];
 

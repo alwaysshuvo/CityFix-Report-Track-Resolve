@@ -1,0 +1,74 @@
+[
+  {
+    "id": "1",
+    "title": "Streetlight Fixed",
+    "category": "Electrical",
+    "status": "resolved",
+    "priority": "normal",
+    "location": "Uttara, Dhaka",
+    "image": "https://i.ibb.co.com/JFykgMdM/Best-Paint-for-Outdoor-Lamp-Post-7-Top-Rated-Options-That-Last-Years-2025-Guide.jpg",
+    "upvotes": 12,
+    "authorId": "user_100",
+    "description": "Streetlight repaired near block A"
+  },
+  {
+    "id": "2",
+    "title": "Broken Road Repaired",
+    "category": "Road",
+    "status": "resolved",
+    "priority": "high",
+    "location": "Mirpur 10",
+    "image": "https://i.pinimg.com/1200x/7e/34/a5/7e34a57c1144a21fe1ffdde78ab4eb80.jpg",
+    "upvotes": 45,
+    "authorId": "user_101",
+    "description": "Pothole filled and resurfaced"
+  },
+  {
+    "id": "3",
+    "title": "Garbage Cleaned",
+    "category": "Garbage",
+    "status": "resolved",
+    "priority": "normal",
+    "location": "Bashundhara R/A",
+    "image": "https://i.pinimg.com/1200x/7e/34/a5/7e34a57c1144a21fe1ffdde78ab4eb80.jpg",
+    "upvotes": 9,
+    "authorId": "user_102",
+    "description": "Garbage pickup and area cleaned"
+  },
+  {
+    "id": "4",
+    "title": "Water Leakage",
+    "category": "Water",
+    "status": "pending",
+    "priority": "normal",
+    "location": "Gulshan",
+    "image": "https://i.pinimg.com/1200x/7e/34/a5/7e34a57c1144a21fe1ffdde78ab4eb80.jpg",
+    "upvotes": 3,
+    "authorId": "user_200",
+    "description": "Pipeline leakage near block B"
+  },
+  {
+    "id": "5",
+    "title": "Fallen Tree Block",
+    "category": "Environment",
+    "status": "in-progress",
+    "priority": "high",
+    "location": "Banani",
+    "image": "https://i.pinimg.com/1200x/7e/34/a5/7e34a57c1144a21fe1ffdde78ab4eb80.jpg",
+    "upvotes": 21,
+    "authorId": "user_103",
+    "description": "Tree blocking the road, needs removal"
+  },
+  {
+    "id": "6",
+    "title": "Broken Footpath",
+    "category": "Road",
+    "status": "pending",
+    "priority": "normal",
+    "location": "Dhanmondi",
+    "image": "https://i.pinimg.com/736x/c3/c8/65/c3c865a74cbaf087185b2f8ee6e89d10.jpg",
+    "upvotes": 5,
+    "authorId": "user_104",
+    "description": "Footpath tiles broken, dangerous for pedestrians"
+  }
+]
