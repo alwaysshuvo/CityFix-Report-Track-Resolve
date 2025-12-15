@@ -19,7 +19,8 @@ import ReportIssue from "../pages/Dashboard/ReportIssue";
 import Profile from "../pages/Dashboard/Profile";
 
 import NotFound from "../pages/NotFound/NotFound";
-import IssueCard from "../pages/IssueCard/IssueCard";
+import IssueDetails from "../pages/IssueDetails/IssueDetails";
+
 
 const router = createBrowserRouter([
 
@@ -51,7 +52,7 @@ const router = createBrowserRouter([
       },
       {
         path: "issue/:id",
-        element: <IssueCard />,
+        element: <IssueDetails />,
       },
       {
         path: "login",

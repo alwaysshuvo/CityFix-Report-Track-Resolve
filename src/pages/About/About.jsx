@@ -4,7 +4,6 @@ const About = () => {
   return (
     <div className="pt-28 pb-20 px-5 bg-base-100 text-gray-700">
 
-      {/* HEADER */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -20,7 +19,6 @@ const About = () => {
         </p>
       </motion.div>
 
-      {/* WHO WE ARE */}
       <motion.div
         initial={{ opacity: 0, x: -40 }}
         whileInView={{ opacity: 1, x: 0 }}
@@ -36,7 +34,7 @@ const About = () => {
         </p>
       </motion.div>
 
-      {/* OUR MISSION + OUR VISION */}
+
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 mb-14">
 
         <motion.div
@@ -69,7 +67,6 @@ const About = () => {
 
       </div>
 
-      {/* WHAT WE DO */}
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -89,7 +86,6 @@ const About = () => {
         </ul>
       </motion.div>
 
-      {/* ACHIEVEMENTS */}
       <motion.div
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
