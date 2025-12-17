@@ -8,7 +8,7 @@ import {
   LogOut,
 } from "lucide-react";
 
-const DashboardSidebar = () => {
+const UserDashboardSidebar = () => {
   const linkClass = ({ isActive }) =>
     isActive
       ? "flex items-center gap-3 px-4 py-3 bg-primary text-white rounded-lg"
@@ -45,4 +45,4 @@ const DashboardSidebar = () => {
   );
 };
 
-export default DashboardSidebar;
+export default UserDashboardSidebar;

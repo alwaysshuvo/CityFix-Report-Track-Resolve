@@ -2,7 +2,7 @@
 import { Link } from "react-router-dom";
 import { Bell, Home } from "lucide-react";
 
-const DashboardNavbar = () => {
+const UserDashboardNavbar = () => {
   return (
     <header className="h-16 bg-white shadow px-6 flex items-center justify-between">
       
@@ -11,7 +11,7 @@ const DashboardNavbar = () => {
           to="/"
           className="flex items-center gap-2 text-primary font-bold hover:opacity-80"
         >
-          <Home size={20} />
+          <img src="/public/logo.png" alt="LOgo" className="w-[30px] h-[30px]" />
           CityFix
         </Link>
 
@@ -36,4 +36,4 @@ const DashboardNavbar = () => {
   );
 };
 
-export default DashboardNavbar;
+export default UserDashboardNavbar;
