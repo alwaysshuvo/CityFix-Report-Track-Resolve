@@ -14,21 +14,19 @@ const MainLayout = () => {
 
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 400); 
+    }, 400);
 
     return () => clearTimeout(timer);
   }, [location]);
 
   return (
-    <div>
-      <ScrollToTop/>
-      <Navbar />
+  <div className="min-h-screen bg-white text-black dark:bg-[#0A0A0A] dark:text-[#E5E5E5]">
+    <Navbar />
+    {isLoading ? <CityFixLoader /> : <Outlet />}
+    <Footer />
+  </div>
+);
 
-      {isLoading ? <CityFixLoader /> : <Outlet />}
-
-      <Footer />
-    </div>
-  );
 };
 
 export default MainLayout;

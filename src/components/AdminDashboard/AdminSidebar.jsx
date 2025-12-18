@@ -32,6 +32,7 @@ const AdminSidebar = ({ open, setOpen }) => {
           <NavLink to="/admin" end className={linkClass}>Dashboard</NavLink>
           <NavLink to="/admin/issues" className={linkClass}>Manage Issues</NavLink>
           <NavLink to="/admin/users" className={linkClass}>Users</NavLink>
+          <NavLink to="/admin/staff" className={linkClass}>Manage Staff</NavLink>
           <NavLink to="/admin/payments" className={linkClass}>Payments</NavLink>
         </nav>
       </aside>

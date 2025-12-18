@@ -12,8 +12,8 @@ const AssignStaffModal = ({ open, onClose, onAssign }) => {
 
   const handleAssign = () => {
     if (!selectedStaff) return;
-    onAssign(staffs.find((s) => s.id === selectedStaff));
-    onClose();
+    const staff = staffs.find((s) => s.id === selectedStaff);
+    onAssign(staff);
   };
 
   return (
@@ -47,10 +47,7 @@ const AssignStaffModal = ({ open, onClose, onAssign }) => {
             </select>
 
             <div className="flex justify-end gap-3 mt-6">
-              <button
-                onClick={onClose}
-                className="btn btn-ghost"
-              >
+              <button onClick={onClose} className="btn btn-ghost">
                 Cancel
               </button>
               <button

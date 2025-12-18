@@ -13,25 +13,17 @@ const StaffDashboard = () => {
   useEffect(() => {
     if (!user?.email) return;
 
-    axios.get("http://localhost:5000/issues").then((res) => {
-      const assignedIssues = res.data.filter(
-        issue => issue.assignedStaff?.email === user.email
-      );
+    axios
+      .get(`http://localhost:5000/issues/staff/${user.email}`)
+      .then((res) => {
+        const issues = res.data;
 
-      const inProgress = assignedIssues.filter(
-        issue => issue.status === "in-progress"
-      );
-
-      const resolved = assignedIssues.filter(
-        issue => issue.status === "resolved"
-      );
-
-      setStats({
-        assigned: assignedIssues.length,
-        inProgress: inProgress.length,
-        resolved: resolved.length,
+        setStats({
+          assigned: issues.length,
+          inProgress: issues.filter(i => i.status === "in-progress").length,
+          resolved: issues.filter(i => i.status === "resolved").length,
+        });
       });
-    });
   }, [user]);
 
   return (

@@ -1,10 +1,12 @@
 import { createBrowserRouter } from "react-router-dom";
 
+// Layouts
 import MainLayout from "../layouts/MainLayout";
 import DashboardLayout from "../layouts/DashboardLayout";
 import AdminLayout from "../layouts/AdminLayout";
+import StaffLayout from "../layouts/StaffLayout";
 
-// Public pages
+// Public Pages
 import Home from "../pages/Home/Home";
 import AllIssues from "../pages/AllIssues/AllIssues";
 import Contact from "../pages/Contact/Contact";
@@ -15,40 +17,46 @@ import Register from "../pages/Register/Register";
 import IssueDetails from "../pages/IssueDetails/IssueDetails";
 import NotFound from "../pages/NotFound/NotFound";
 
-// User Dashboard pages
+// User Dashboard Pages
 import UserDashboard from "../pages/UserDashboard/UserDashboard";
 import MyIssues from "../pages/UserDashboard/MyIssues";
 import ReportIssue from "../pages/UserDashboard/ReportIssue";
 import Profile from "../pages/UserDashboard/Profile";
 
-// Admin pages
+// Admin Dashboard Pages
 import AdminDashboard from "../pages/Admin/AdminDashboard";
 import ManageIssues from "../pages/Admin/ManageIssues";
 import Users from "../pages/Admin/Users";
 import Payments from "../pages/Admin/Payments";
-import StaffLayout from "../layouts/StaffLayout";
+import ManageStaff from "../pages/Admin/ManageStaff";
+
+// Staff Dashboard Pages
 import StaffDashboard from "../pages/Staff/StaffDashboard";
 import AssignedIssues from "../pages/Staff/AssignedIssues";
 import StaffProfile from "../pages/Staff/StaffProfile";
 
 const router = createBrowserRouter([
-  // 🌐 Public Website Routes
+  /* =========================
+     🌐 PUBLIC WEBSITE ROUTES
+  ========================== */
   {
     path: "/",
     element: <MainLayout />,
     children: [
       { index: true, element: <Home /> },
       { path: "all-issues", element: <AllIssues /> },
+      { path: "issue/:id", element: <IssueDetails /> },
       { path: "contact", element: <Contact /> },
       { path: "about", element: <About /> },
       { path: "faq", element: <Faq /> },
-      { path: "issue/:id", element: <IssueDetails /> },
       { path: "login", element: <Login /> },
       { path: "register", element: <Register /> },
     ],
   },
 
-  // 👤 User Dashboard Routes
+  /* =========================
+     👤 USER DASHBOARD ROUTES
+  ========================== */
   {
     path: "/dashboard",
     element: <DashboardLayout />,
@@ -60,7 +68,9 @@ const router = createBrowserRouter([
     ],
   },
 
-  // 🛠️ Admin Dashboard Routes
+  /* =========================
+     🛠️ ADMIN DASHBOARD ROUTES
+  ========================== */
   {
     path: "/admin",
     element: <AdminLayout />,
@@ -68,30 +78,27 @@ const router = createBrowserRouter([
       { index: true, element: <AdminDashboard /> },
       { path: "issues", element: <ManageIssues /> },
       { path: "users", element: <Users /> },
+      { path: "staff", element: <ManageStaff /> },
       { path: "payments", element: <Payments /> },
     ],
   },
-  // 🛠️ Staff Dashboard Routes
+
+  /* =========================
+     👷 STAFF DASHBOARD ROUTES
+  ========================== */
   {
     path: "/staff",
     element: <StaffLayout />,
     children: [
-      {
-        index: true,
-        element: <StaffDashboard />,
-      },
-      {
-        path: "issues",
-        element: <AssignedIssues />,
-      },
-      {
-        path: "profile",
-        element: <StaffProfile />,
-      },
+      { index: true, element: <StaffDashboard /> },
+      { path: "issues", element: <AssignedIssues /> },
+      { path: "profile", element: <StaffProfile /> },
     ],
   },
 
-  // ❌ 404
+  /* =========================
+     ❌ NOT FOUND
+  ========================== */
   {
     path: "*",
     element: <NotFound />,
