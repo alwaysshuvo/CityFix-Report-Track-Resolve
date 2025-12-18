@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import StaffSidebar from "../components/StaffDashboard/StaffSidebar";
 import StaffNavbar from "../components/StaffDashboard/StaffNavbar";
+import ScrollToTop from "../components/ScrollToTop/ScrollToTop";
 
 
 const StaffLayout = () => {
@@ -9,6 +10,7 @@ const StaffLayout = () => {
 
   return (
     <div className="min-h-screen flex bg-base-100">
+      <ScrollToTop/>
       <StaffSidebar open={open} setOpen={setOpen} />
 
       <div className="flex-1 flex flex-col">

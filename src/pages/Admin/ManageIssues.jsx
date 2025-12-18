@@ -1,9 +1,9 @@
 import { useState } from "react";
 import AssignStaffModal from "../../components/AdminDashboard/AssignStaffModal";
 
-
 const ManageIssues = () => {
   const [openModal, setOpenModal] = useState(false);
+  const [assignedStaff, setAssignedStaff] = useState(null);
 
   return (
     <div>
@@ -38,13 +38,23 @@ const ManageIssues = () => {
               </td>
 
               <td>
-                <span className="text-gray-400 italic">Not Assigned</span>
+                {assignedStaff ? (
+                  <div>
+                    <p className="font-medium">{assignedStaff.name}</p>
+                    <p className="text-xs text-gray-500">
+                      {assignedStaff.email}
+                    </p>
+                  </div>
+                ) : (
+                  <span className="text-gray-400 italic">Not Assigned</span>
+                )}
               </td>
 
               <td className="flex gap-2">
                 <button
                   onClick={() => setOpenModal(true)}
                   className="btn btn-xs btn-primary"
+                  disabled={!!assignedStaff}
                 >
                   Assign Staff
                 </button>
@@ -65,6 +75,7 @@ const ManageIssues = () => {
       <AssignStaffModal
         open={openModal}
         onClose={() => setOpenModal(false)}
+        onAssign={(staff) => setAssignedStaff(staff)}
       />
     </div>
   );

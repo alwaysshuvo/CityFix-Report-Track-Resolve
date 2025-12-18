@@ -28,7 +28,7 @@ const Hero = () => {
           {/* CTA BUTTONS */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
             <Link
-              to="/report-issue"
+              to="/dashboard/report-issue"
               className="px-6 py-3 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700"
             >
               Report an Issue

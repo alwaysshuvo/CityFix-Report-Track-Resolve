@@ -3,6 +3,7 @@ import Navbar from "../components/Navbar/Navbar";
 import Footer from "../components/Footer/Footer";
 import CityFixLoader from "../components/loader/CityFixLoader";
 import { useEffect, useState } from "react";
+import ScrollToTop from "../components/ScrollToTop/ScrollToTop";
 
 const MainLayout = () => {
   const location = useLocation();
@@ -20,6 +21,7 @@ const MainLayout = () => {
 
   return (
     <div>
+      <ScrollToTop/>
       <Navbar />
 
       {isLoading ? <CityFixLoader /> : <Outlet />}

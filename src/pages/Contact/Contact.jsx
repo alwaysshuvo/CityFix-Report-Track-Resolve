@@ -82,7 +82,7 @@ const Contact = () => {
         >
           {/* Background Illustration */}
           <img
-            src="https://i.ibb.co.com/4Pv2M23/Business-cuate.png"
+            src="https://i.ibb.co.com/HpNVFKcS/caohdf.jpg"
             alt="Contact Illustration"
             className="object-cover w-full h-72 md:h-full"
           />

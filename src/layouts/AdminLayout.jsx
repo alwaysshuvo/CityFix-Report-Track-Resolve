@@ -2,12 +2,14 @@ import { Outlet } from "react-router-dom";
 import { useState } from "react";
 import AdminNavbar from "../components/AdminDashboard/AdminNavbar";
 import AdminSidebar from "../components/AdminDashboard/AdminSidebar";
+import ScrollToTop from "../components/ScrollToTop/ScrollToTop";
 
 const AdminLayout = () => {
   const [open, setOpen] = useState(false);
 
   return (
     <div className="min-h-screen flex bg-gray-100">
+      <ScrollToTop/>
 
       {/* Sidebar */}
       <AdminSidebar open={open} setOpen={setOpen} />
