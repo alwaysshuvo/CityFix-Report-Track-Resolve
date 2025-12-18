@@ -1,12 +1,47 @@
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { useAuth } from "../../hooks/useAuth";
+
 const StaffDashboard = () => {
+  const { user } = useAuth();
+  const [stats, setStats] = useState({
+    assigned: 0,
+    inProgress: 0,
+    resolved: 0,
+  });
+
+  useEffect(() => {
+    if (!user?.email) return;
+
+    axios.get("http://localhost:5000/issues").then((res) => {
+      const assignedIssues = res.data.filter(
+        issue => issue.assignedStaff?.email === user.email
+      );
+
+      const inProgress = assignedIssues.filter(
+        issue => issue.status === "in-progress"
+      );
+
+      const resolved = assignedIssues.filter(
+        issue => issue.status === "resolved"
+      );
+
+      setStats({
+        assigned: assignedIssues.length,
+        inProgress: inProgress.length,
+        resolved: resolved.length,
+      });
+    });
+  }, [user]);
+
   return (
     <div>
       <h1 className="text-3xl font-bold mb-8">Staff Dashboard</h1>
 
       <div className="grid md:grid-cols-3 gap-6">
-        <StatCard title="Assigned Issues" value="12" />
-        <StatCard title="In Progress" value="5" />
-        <StatCard title="Resolved Today" value="3" />
+        <StatCard title="Assigned Issues" value={stats.assigned} />
+        <StatCard title="In Progress" value={stats.inProgress} />
+        <StatCard title="Resolved" value={stats.resolved} />
       </div>
     </div>
   );

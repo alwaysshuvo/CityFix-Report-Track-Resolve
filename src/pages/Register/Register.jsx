@@ -3,38 +3,65 @@ import { motion } from "framer-motion";
 import { useContext, useState } from "react";
 import Swal from "sweetalert2";
 import { AuthContext } from "../../provider/AuthProvider";
+import { FiEye, FiEyeOff } from "react-icons/fi";
 
 const Register = () => {
   const { createUser, googleLogin } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  const [error, setError] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [imgURL, setImgURL] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const imgbbKey = import.meta.env.VITE_IMGBB_API_KEY;
+
+  const handleImgUpload = async (e) => {
+    const img = e.target.files[0];
+    if (!img) return;
+
+    setUploading(true);
+
+    const formData = new FormData();
+    formData.append("image", img);
+
+    try {
+      const url = `https://api.imgbb.com/1/upload?key=${imgbbKey}`;
+      const res = await fetch(url, { method: "POST", body: formData });
+      const data = await res.json();
+
+      if (data.success) {
+        setImgURL(data.data.url);
+        Swal.fire("Uploaded!", "Profile image uploaded!", "success");
+      }
+    } catch {
+      Swal.fire("Failed!", "Image upload failed", "error");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    setError("");
 
     const form = e.target;
     const name = form.name.value;
     const email = form.email.value;
     const password = form.password.value;
     const confirmPassword = form.confirmPassword.value;
-    const termsAccepted = form.terms.checked;
+    const terms = form.terms.checked;
 
-    if (!termsAccepted) {
-      return Swal.fire("Oops!", "You must accept Terms & Conditions", "warning");
+    if (!terms) {
+      return Swal.fire("Required!", "Accept Terms & Conditions", "warning");
     }
-
     if (password.length < 6) {
-      return Swal.fire(
-        "Weak Password",
-        "Password must be at least 6 characters",
-        "error"
-      );
+      return Swal.fire("Weak!", "Password must be 6+ chars", "error");
     }
-
     if (password !== confirmPassword) {
-      return Swal.fire("Mismatch!", "Passwords do not match", "error");
+      return Swal.fire("Error!", "Passwords don't match", "error");
+    }
+    if (!imgURL) {
+      return Swal.fire("Required!", "Upload your profile image", "warning");
     }
 
     try {
@@ -43,14 +70,13 @@ const Register = () => {
       Swal.fire({
         icon: "success",
         title: "Account Created!",
-        text: "Welcome to CityFix 🎉",
-        timer: 1800,
+        text: `Welcome to CityFix, ${name}! 🎉`,
+        timer: 1500,
         showConfirmButton: false,
       });
 
       navigate("/");
     } catch (err) {
-      setError(err.message);
       Swal.fire("Error", err.message, "error");
     }
   };
@@ -60,8 +86,8 @@ const Register = () => {
       await googleLogin();
       Swal.fire({
         icon: "success",
-        title: "Signed up with Google",
-        timer: 1500,
+        title: "Signed in with Google",
+        timer: 1200,
         showConfirmButton: false,
       });
       navigate("/");
@@ -71,113 +97,156 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-500">
+    <div
+      className="
+      min-h-screen flex items-center justify-center 
+      px-4 pt-32 pb-20
+      bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600
+      "
+    >
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8"
+        className="w-full max-w-lg bg-white rounded-3xl shadow-2xl p-10 mb-10"
       >
+        {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-extrabold">
-            Create an <span className="text-primary">Account</span>
+          <h1 className="text-3xl font-extrabold text-gray-800">
+            Create an <span className="text-blue-600">Account</span>
           </h1>
-          <p className="text-gray-500 mt-2">
-            Join CityFix and help improve your city
-          </p>
+          <p className="text-gray-500 mt-2">Join CityFix & improve your city</p>
         </div>
 
-        <form onSubmit={handleRegister} className="space-y-5">
+        {/* Profile Upload */}
+        <div className="text-center mb-8">
+          {imgURL ? (
+            <img
+              src={imgURL}
+              className="w-24 h-24 rounded-full mx-auto object-cover border shadow-md"
+            />
+          ) : (
+            <div className="w-24 h-24 rounded-full bg-gray-300 mx-auto flex items-center justify-center text-gray-600">
+              No Image
+            </div>
+          )}
+
+          <label className="block mt-4 cursor-pointer bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm">
+            {uploading ? "Uploading..." : "Upload Profile Image"}
+            <input type="file" onChange={handleImgUpload} className="hidden" />
+          </label>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleRegister} className="space-y-6">
+
+          {/* Name */}
           <div>
             <label className="block font-medium mb-1">Full Name</label>
             <input
               type="text"
               name="name"
               required
-              placeholder="Enter your name"
               className="input input-bordered w-full"
             />
           </div>
 
+          {/* Email */}
           <div>
             <label className="block font-medium mb-1">Email</label>
             <input
               type="email"
               name="email"
               required
-              placeholder="Enter your email"
               className="input input-bordered w-full"
             />
           </div>
 
+          {/* Password */}
           <div>
             <label className="block font-medium mb-1">Password</label>
-            <input
-              type="password"
-              name="password"
-              required
-              placeholder="Create a password"
-              className="input input-bordered w-full"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                required
+                className="input input-bordered w-full pr-12"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-xl text-gray-500"
+              >
+                {showPassword ? <FiEyeOff /> : <FiEye />}
+              </button>
+            </div>
           </div>
 
+          {/* Confirm Password */}
           <div>
             <label className="block font-medium mb-1">Confirm Password</label>
-            <input
-              type="password"
-              name="confirmPassword"
-              required
-              placeholder="Confirm your password"
-              className="input input-bordered w-full"
-            />
+            <div className="relative">
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                name="confirmPassword"
+                required
+                className="input input-bordered w-full pr-12"
+              />
+              <button
+                type="button"
+                onClick={() =>
+                  setShowConfirmPassword(!showConfirmPassword)
+                }
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-xl text-gray-500"
+              >
+                {showConfirmPassword ? <FiEyeOff /> : <FiEye />}
+              </button>
+            </div>
           </div>
 
+          {/* Terms */}
           <label className="flex items-start gap-2 text-sm">
-            <input
-              type="checkbox"
-              name="terms"
-              className="checkbox checkbox-sm mt-1"
-            />
+            <input type="checkbox" name="terms" className="checkbox checkbox-sm mt-1" />
             <span className="text-gray-600">
               I agree to the{" "}
-              <Link to="#" className="text-primary font-medium hover:underline">
+              <Link to="#" className="text-blue-600 hover:underline">
                 Terms & Conditions
               </Link>
             </span>
           </label>
 
+          {/* Register btn */}
           <motion.button
             whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.96 }}
+            whileTap={{ scale: 0.95 }}
+            disabled={uploading}
             className="btn btn-primary w-full text-lg"
           >
-            Register
+            {uploading ? "Wait..." : "Register"}
           </motion.button>
         </form>
 
-        <div className="mt-6 text-center">
-          <p className="text-gray-600">
-            Already have an account?{" "}
-            <Link
-              to="/login"
-              className="text-primary font-semibold hover:underline"
-            >
-              Login
-            </Link>
-          </p>
+        {/* Login Link */}
+        <p className="text-center mt-6 text-gray-600">
+          Already have an account?
+          <Link to="/login" className="text-blue-600 ml-1 hover:underline">
+            Login
+          </Link>
+        </p>
+
+        {/* OR Divider */}
+        <div className="mt-6 flex items-center gap-3">
+          <div className="h-px bg-gray-300 flex-1"></div>
+          <span className="text-gray-400 text-sm">OR</span>
+          <div className="h-px bg-gray-300 flex-1"></div>
         </div>
 
-        <div className="mt-8 flex items-center gap-3">
-          <div className="flex-1 h-px bg-gray-200"></div>
-          <span className="text-sm text-gray-400">OR</span>
-          <div className="flex-1 h-px bg-gray-200"></div>
-        </div>
-
+        {/* Google */}
         <motion.button
           onClick={handleGoogleSignup}
-          whileHover={{ scale: 1.04 }}
-          whileTap={{ scale: 0.96 }}
-          className="btn btn-outline w-full mt-5"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="btn btn-outline w-full mt-6"
         >
           Sign up with Google
         </motion.button>
