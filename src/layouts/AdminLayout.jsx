@@ -1,22 +1,24 @@
 import { Outlet } from "react-router-dom";
+import { useState } from "react";
 import AdminNavbar from "../components/AdminDashboard/AdminNavbar";
 import AdminSidebar from "../components/AdminDashboard/AdminSidebar";
 
 
 const AdminLayout = () => {
-  return (
-    <div className="min-h-screen grid grid-cols-[256px_1fr]">
-      
-      {/* Sidebar */}
-      <AdminSidebar />
+  const [open, setOpen] = useState(false);
 
-      {/* Content Area */}
-      <div className="flex flex-col">
-        <AdminNavbar />
-        <main className="p-8 bg-base-100 flex-1">
+  return (
+    <div className="min-h-screen flex bg-base-100">
+
+      <AdminSidebar open={open} setOpen={setOpen} />
+
+      <div className="flex-1 flex flex-col">
+        <AdminNavbar setOpen={setOpen} />
+        <main className="p-4 md:p-8 flex-1">
           <Outlet />
         </main>
       </div>
+
     </div>
   );
 };

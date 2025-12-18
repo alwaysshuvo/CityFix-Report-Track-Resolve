@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
 
-const AdminSidebar = ({ open, setOpen }) => {
+const StaffSidebar = ({ open, setOpen }) => {
   const linkClass = ({ isActive }) =>
     isActive
       ? "block px-4 py-3 rounded-lg bg-primary text-white"
@@ -8,7 +8,6 @@ const AdminSidebar = ({ open, setOpen }) => {
 
   return (
     <>
-      {/* Overlay (mobile) */}
       {open && (
         <div
           className="fixed inset-0 bg-black/40 z-40 lg:hidden"
@@ -24,19 +23,24 @@ const AdminSidebar = ({ open, setOpen }) => {
         <h1 className="text-2xl font-extrabold text-primary mb-8">
           CityFix
           <span className="block text-sm text-gray-500">
-            Admin Dashboard
+            Staff Dashboard
           </span>
         </h1>
 
         <nav className="space-y-2">
-          <NavLink to="/admin" end className={linkClass}>Dashboard</NavLink>
-          <NavLink to="/admin/issues" className={linkClass}>Manage Issues</NavLink>
-          <NavLink to="/admin/users" className={linkClass}>Users</NavLink>
-          <NavLink to="/admin/payments" className={linkClass}>Payments</NavLink>
+          <NavLink to="/staff" end className={linkClass}>
+            Dashboard
+          </NavLink>
+          <NavLink to="/staff/issues" className={linkClass}>
+            Assigned Issues
+          </NavLink>
+          <NavLink to="/staff/profile" className={linkClass}>
+            Profile
+          </NavLink>
         </nav>
       </aside>
     </>
   );
 };
 
-export default AdminSidebar;
+export default StaffSidebar;

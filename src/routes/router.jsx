@@ -26,6 +26,10 @@ import AdminDashboard from "../pages/Admin/AdminDashboard";
 import ManageIssues from "../pages/Admin/ManageIssues";
 import Users from "../pages/Admin/Users";
 import Payments from "../pages/Admin/Payments";
+import StaffLayout from "../layouts/StaffLayout";
+import StaffDashboard from "../pages/Staff/StaffDashboard";
+import AssignedIssues from "../pages/Staff/AssignedIssues";
+import StaffProfile from "../pages/Staff/StaffProfile";
 
 const router = createBrowserRouter([
   // 🌐 Public Website Routes
@@ -65,6 +69,25 @@ const router = createBrowserRouter([
       { path: "issues", element: <ManageIssues /> },
       { path: "users", element: <Users /> },
       { path: "payments", element: <Payments /> },
+    ],
+  },
+  // 🛠️ Staff Dashboard Routes
+  {
+    path: "/staff",
+    element: <StaffLayout />,
+    children: [
+      {
+        index: true,
+        element: <StaffDashboard />,
+      },
+      {
+        path: "issues",
+        element: <AssignedIssues />,
+      },
+      {
+        path: "profile",
+        element: <StaffProfile />,
+      },
     ],
   },
 

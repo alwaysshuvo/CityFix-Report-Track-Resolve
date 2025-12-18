@@ -15,36 +15,67 @@ const googleProvider = new GoogleAuthProvider();
 
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [role, setRole] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Register
-  const createUser = (email, password) => {
-    setLoading(true);
-    return createUserWithEmailAndPassword(auth, email, password);
+  const saveUserToDB = async (userInfo) => {
+    await fetch("http://localhost:5000/users", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(userInfo),
+    });
   };
 
-  // Login
+  const createUser = async (email, password, name) => {
+    setLoading(true);
+    const result = await createUserWithEmailAndPassword(auth, email, password);
+
+    await saveUserToDB({
+      name,
+      email,
+      role: "citizen",
+    });
+
+    return result;
+  };
+
   const loginUser = (email, password) => {
     setLoading(true);
     return signInWithEmailAndPassword(auth, email, password);
   };
 
-  // Google Login
-  const googleLogin = () => {
+  const googleLogin = async () => {
     setLoading(true);
-    return signInWithPopup(auth, googleProvider);
+    const result = await signInWithPopup(auth, googleProvider);
+
+    await saveUserToDB({
+      name: result.user.displayName,
+      email: result.user.email,
+      role: "citizen",
+    });
+
+    return result;
   };
 
-  // Logout
   const logoutUser = () => {
     setLoading(true);
     return signOut(auth);
   };
 
-  // Track user
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
+
+      if (currentUser?.email) {
+        const res = await fetch(
+          `http://localhost:5000/users/${currentUser.email}`
+        );
+        const data = await res.json();
+        setRole(data?.role);
+      } else {
+        setRole(null);
+      }
+
       setLoading(false);
     });
 
@@ -53,6 +84,7 @@ const AuthProvider = ({ children }) => {
 
   const authInfo = {
     user,
+    role,
     loading,
     createUser,
     loginUser,

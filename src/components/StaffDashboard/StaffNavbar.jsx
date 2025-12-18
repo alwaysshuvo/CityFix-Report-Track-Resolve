@@ -1,9 +1,8 @@
 import { Link } from "react-router-dom";
 
-const AdminNavbar = ({ setOpen }) => {
+const StaffNavbar = ({ setOpen }) => {
   return (
     <div className="h-16 bg-base-100 border-b flex items-center justify-between px-4 md:px-6">
-
       <div className="flex items-center gap-3">
         <button
           className="lg:hidden btn btn-ghost btn-sm"
@@ -11,9 +10,8 @@ const AdminNavbar = ({ setOpen }) => {
         >
           ☰
         </button>
-
         <span className="text-xl font-bold text-primary">
-          Admin Panel
+          Staff Panel
         </span>
       </div>
 
@@ -24,4 +22,4 @@ const AdminNavbar = ({ setOpen }) => {
   );
 };
 
-export default AdminNavbar;
+export default StaffNavbar;
