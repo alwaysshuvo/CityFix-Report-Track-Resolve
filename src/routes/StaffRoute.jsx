@@ -3,7 +3,7 @@ import { useAuth } from "../hooks/useAuth";
 import useRole from "../hooks/useRole";
 
 
-const AdminRoute = ({ children }) => {
+const StaffRoute = ({ children }) => {
   const { user, loading } = useAuth();
   const { role, loading: roleLoading } = useRole();
 
@@ -11,11 +11,11 @@ const AdminRoute = ({ children }) => {
     return <div className="text-center mt-20">Loading...</div>;
   }
 
-  if (!user || role !== "admin") {
+  if (!user || role !== "staff") {
     return <Navigate to="/" replace />;
   }
 
   return children;
 };
 
-export default AdminRoute;
+export default StaffRoute;

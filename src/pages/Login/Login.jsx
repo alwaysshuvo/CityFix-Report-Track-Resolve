@@ -1,17 +1,34 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import {
+  signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup,
+} from "firebase/auth";
 import { auth } from "../../firebase/firebase.config";
+import useRole from "../../hooks/useRole";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { role, loading: roleLoading } = useRole();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // 🔁 Redirect after login based on role
+  useEffect(() => {
+    if (auth.currentUser && role && !roleLoading) {
+      if (role === "admin") navigate("/admin", { replace: true });
+      else if (role === "staff") navigate("/staff", { replace: true });
+      else navigate("/dashboard", { replace: true });
+    }
+  }, [role, roleLoading, navigate]);
+
+  // Email login
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
@@ -19,22 +36,21 @@ const Login = () => {
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      navigate("/");
-    } catch (err) {
+    } catch {
       setError("Invalid email or password");
     } finally {
       setLoading(false);
     }
   };
 
+  // Google login
   const handleGoogleLogin = async () => {
     const provider = new GoogleAuthProvider();
     setError("");
 
     try {
       await signInWithPopup(auth, provider);
-      navigate("/");
-    } catch (err) {
+    } catch {
       setError("Google login failed");
     }
   };
@@ -57,6 +73,7 @@ const Login = () => {
         </div>
 
         <form onSubmit={handleLogin} className="space-y-5">
+          {/* Email */}
           <div>
             <label className="text-sm font-medium text-gray-700">Email</label>
             <input
@@ -69,16 +86,30 @@ const Login = () => {
             />
           </div>
 
+          {/* Password with toggle */}
           <div>
-            <label className="text-sm font-medium text-gray-700">Password</label>
-            <input
-              type="password"
-              required
-              className="mt-1 input input-bordered w-full"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+            <label className="text-sm font-medium text-gray-700">
+              Password
+            </label>
+
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                required
+                className="mt-1 input input-bordered w-full pr-12"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 hover:text-gray-700"
+              >
+                {showPassword ? "Hide" : "Show"}
+              </button>
+            </div>
           </div>
 
           {error && (

@@ -11,22 +11,20 @@ const MainLayout = () => {
 
   useEffect(() => {
     setIsLoading(true);
-
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 400);
-
+    const timer = setTimeout(() => setIsLoading(false), 400);
     return () => clearTimeout(timer);
   }, [location]);
 
   return (
-  <div className="min-h-screen bg-white text-black dark:bg-[#0A0A0A] dark:text-[#E5E5E5]">
-    <Navbar />
-    {isLoading ? <CityFixLoader /> : <Outlet />}
-    <Footer />
-  </div>
-);
-
+    <div className="min-h-screen bg-white text-black dark:bg-[#0A0A0A] dark:text-[#E5E5E5] transition-colors duration-300">
+      <ScrollToTop />
+      <Navbar />
+      <div className="pt-20">
+        {isLoading ? <CityFixLoader /> : <Outlet />}
+      </div>
+      <Footer />
+    </div>
+  );
 };
 
 export default MainLayout;

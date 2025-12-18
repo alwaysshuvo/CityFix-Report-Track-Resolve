@@ -34,6 +34,8 @@ import ManageStaff from "../pages/Admin/ManageStaff";
 import StaffDashboard from "../pages/Staff/StaffDashboard";
 import AssignedIssues from "../pages/Staff/AssignedIssues";
 import StaffProfile from "../pages/Staff/StaffProfile";
+import AdminRoute from "../hooks/useRole";
+import StaffRoute from "./StaffRoute";
 
 const router = createBrowserRouter([
   /* =========================
@@ -73,7 +75,11 @@ const router = createBrowserRouter([
   ========================== */
   {
     path: "/admin",
-    element: <AdminLayout />,
+    element: (
+      <AdminRoute>
+        <AdminLayout />
+      </AdminRoute>
+    ),
     children: [
       { index: true, element: <AdminDashboard /> },
       { path: "issues", element: <ManageIssues /> },
@@ -88,7 +94,11 @@ const router = createBrowserRouter([
   ========================== */
   {
     path: "/staff",
-    element: <StaffLayout />,
+    element: (
+      <StaffRoute>
+        <StaffLayout />
+      </StaffRoute>
+    ),
     children: [
       { index: true, element: <StaffDashboard /> },
       { path: "issues", element: <AssignedIssues /> },
