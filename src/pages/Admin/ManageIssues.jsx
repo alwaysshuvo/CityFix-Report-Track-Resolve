@@ -1,36 +1,71 @@
+import { useState } from "react";
+import AssignStaffModal from "../../components/AdminDashboard/AssignStaffModal";
+
+
 const ManageIssues = () => {
+  const [openModal, setOpenModal] = useState(false);
+
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Manage Issues</h1>
+      <h1 className="text-3xl font-bold mb-6">Manage Issues</h1>
 
-      <div className="overflow-x-auto bg-base-200 rounded-xl shadow">
-        <table className="table">
-          <thead>
+      <div className="overflow-x-auto bg-base-100 rounded-xl shadow border">
+        <table className="table table-zebra">
+          <thead className="bg-base-200">
             <tr>
+              <th>#</th>
               <th>Title</th>
               <th>Category</th>
               <th>Status</th>
               <th>Priority</th>
-              <th>Action</th>
+              <th>Assigned Staff</th>
+              <th>Actions</th>
             </tr>
           </thead>
+
           <tbody>
             <tr>
-              <td>Broken Road</td>
+              <td>1</td>
+              <td className="font-medium">Broken Road</td>
               <td>Road</td>
+
               <td>
                 <span className="badge badge-warning">Pending</span>
               </td>
+
               <td>
                 <span className="badge badge-error">High</span>
               </td>
+
               <td>
-                <button className="btn btn-sm btn-primary">Update</button>
+                <span className="text-gray-400 italic">Not Assigned</span>
+              </td>
+
+              <td className="flex gap-2">
+                <button
+                  onClick={() => setOpenModal(true)}
+                  className="btn btn-xs btn-primary"
+                >
+                  Assign Staff
+                </button>
+
+                <button className="btn btn-xs btn-error btn-outline">
+                  Reject
+                </button>
+
+                <button className="btn btn-xs btn-ghost">
+                  View
+                </button>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
+
+      <AssignStaffModal
+        open={openModal}
+        onClose={() => setOpenModal(false)}
+      />
     </div>
   );
 };
