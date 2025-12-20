@@ -1,48 +1,49 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { useAuth } from "../../hooks/useAuth";
 import Swal from "sweetalert2";
+import { useAuth } from "../../hooks/useAuth";
 
 const AssignedIssues = () => {
   const { user } = useAuth();
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // 🔄 Load assigned issues
   useEffect(() => {
-    if (!user?.email) return;
-
-    axios
-      .get(`http://localhost:5000/issues/staff/${user.email}`)
-      .then((res) => {
-        setIssues(res.data);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+    if (user?.email) {
+      fetchIssues();
+    }
   }, [user]);
 
-  // 🔁 Update issue status
-  const handleStatusChange = async (issueId, status) => {
+  const fetchIssues = async () => {
+    try {
+      const res = await axios.get(
+        `http://localhost:5000/issues/staff/${user.email}`
+      );
+      setIssues(res.data);
+    } catch {
+      Swal.fire("Error", "Failed to load assigned issues", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateStatus = async (id, status) => {
     try {
       await axios.patch(
-        `http://localhost:5000/issues/status/${issueId}`,
+        `http://localhost:5000/issues/status/${id}`,
         { status }
-      );
-
-      setIssues((prev) =>
-        prev.map((issue) =>
-          issue._id === issueId ? { ...issue, status } : issue
-        )
       );
 
       Swal.fire({
         icon: "success",
-        title: "Status updated",
+        title: "Status Updated",
         timer: 1200,
         showConfirmButton: false,
       });
+
+      fetchIssues();
     } catch {
-      Swal.fire("Error", "Failed to update status", "error");
+      Swal.fire("Error", "Status update failed", "error");
     }
   };
 
@@ -65,7 +66,7 @@ const AssignedIssues = () => {
               <th>Title</th>
               <th>Status</th>
               <th>Priority</th>
-              <th>Update Status</th>
+              <th>Update</th>
             </tr>
           </thead>
 
@@ -75,30 +76,32 @@ const AssignedIssues = () => {
                 <td className="font-medium">{issue.title}</td>
 
                 <td>
-                  <span className={`badge ${
-                    issue.status === "pending"
-                      ? "badge-warning"
-                      : issue.status === "in-progress"
-                      ? "badge-info"
-                      : "badge-success"
-                  }`}>
+                  <span className="badge badge-outline">
                     {issue.status}
                   </span>
                 </td>
 
                 <td>
-                  <span className="badge badge-error">
+                  <span
+                    className={`badge ${
+                      issue.priority === "high"
+                        ? "badge-error"
+                        : issue.priority === "medium"
+                        ? "badge-warning"
+                        : "badge-success"
+                    }`}
+                  >
                     {issue.priority}
                   </span>
                 </td>
 
                 <td>
                   <select
-                    className="select select-sm select-bordered"
                     value={issue.status}
                     onChange={(e) =>
-                      handleStatusChange(issue._id, e.target.value)
+                      updateStatus(issue._id, e.target.value)
                     }
+                    className="select select-sm"
                   >
                     <option value="pending">Pending</option>
                     <option value="in-progress">In Progress</option>
