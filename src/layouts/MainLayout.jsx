@@ -16,12 +16,10 @@ const MainLayout = () => {
   }, [location]);
 
   return (
-    <div className="min-h-screen bg-white text-black dark:bg-[#0A0A0A] dark:text-[#E5E5E5] transition-colors duration-300">
+    <div className="min-h-screen bg-gray-50 text-black dark:bg-[#0B0B0B] dark:text-gray-200 transition-colors duration-300">
       <ScrollToTop />
       <Navbar />
-      <div className="pt-20">
-        {isLoading ? <CityFixLoader /> : <Outlet />}
-      </div>
+      <div className="pt-20">{isLoading ? <CityFixLoader /> : <Outlet />}</div>
       <Footer />
     </div>
   );

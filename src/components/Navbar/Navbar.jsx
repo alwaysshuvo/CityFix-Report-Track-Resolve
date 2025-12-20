@@ -26,10 +26,9 @@ const Navbar = () => {
 
   const navLinkClass = ({ isActive }) =>
     isActive
-      ? "text-primary font-semibold border-b-2 border-primary pb-1 dark:text-[#C084FC] dark:border-[#C084FC]"
-      : "font-medium text-gray-700 hover:text-primary transition dark:text-gray-300 dark:hover:text-[#C084FC]";
+      ? "font-semibold text-blue-600 dark:text-purple-300 pb-1 border-b-2 border-blue-600 dark:border-purple-300"
+      : "text-gray-700 hover:text-blue-600 dark:text-gray-300 dark:hover:text-purple-300 transition";
 
-  // ✅ Safe role-based dashboard path
   const getDashboardPath = () => {
     if (role === "admin") return "/admin";
     if (role === "staff") return "/staff";
@@ -38,13 +37,11 @@ const Navbar = () => {
 
   return (
     <div
-      className="
+      className={`
         fixed top-0 left-0 right-0 z-50
-        bg-white text-black shadow-sm
-        dark:bg-[#111] dark:text-[#E5E5E5]
-        dark:shadow-[0_0_15px_rgba(168,85,247,0.25)]
-        backdrop-blur
-      "
+        shadow-md backdrop-blur transition
+        ${dark ? "bg-black text-white" : "bg-white text-black"}
+      `}
     >
       <div className="navbar max-w-7xl mx-auto px-4">
 
@@ -53,15 +50,13 @@ const Navbar = () => {
           <Link to="/" className="flex items-center gap-2">
             <img src="/logo.png" className="w-10 h-10" />
             <span className="text-2xl font-extrabold">
-              <span className="bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
-                City
-              </span>
-              <span className="text-primary dark:text-[#C084FC]">Fix</span>
+              <span className={`${dark ? "text-purple-300" : "text-blue-600"}`}>City</span>
+              <span className={`${dark ? "text-purple-400" : "text-indigo-700"}`}>Fix</span>
             </span>
           </Link>
         </div>
 
-        {/* Desktop Menu */}
+        {/* Desktop */}
         <div className="navbar-center hidden lg:flex">
           <ul className="flex gap-6 text-lg">
             <NavLink to="/" className={navLinkClass}>Home</NavLink>
@@ -75,10 +70,13 @@ const Navbar = () => {
         {/* Right */}
         <div className="navbar-end flex items-center gap-2">
 
-          {/* Theme Toggle */}
+          {/* Theme Switch */}
           <button
             onClick={toggleTheme}
-            className="btn btn-ghost btn-circle hover:bg-gray-100 dark:hover:bg-[#1F1F1F]"
+            className={`
+              btn btn-ghost btn-circle transition
+              ${dark ? "hover:bg-[#222]" : "hover:bg-gray-100"}
+            `}
           >
             {dark ? (
               <Sun className="size-5 text-yellow-400" />
@@ -90,22 +88,15 @@ const Navbar = () => {
           {/* Guest */}
           {!user && (
             <div className="flex gap-2">
-              <Link to="/login" className="btn btn-primary btn-sm px-5">
-                Login
-              </Link>
-              <Link to="/register" className="btn btn-outline btn-sm px-5">
-                Register
-              </Link>
+              <Link to="/login" className="btn btn-primary btn-sm">Login</Link>
+              <Link to="/register" className="btn btn-outline btn-sm">Register</Link>
             </div>
           )}
 
-          {/* Logged In */}
+          {/* Logged in */}
           {user && (
             <div className="relative" ref={dropdownRef}>
-              <button
-                onClick={() => setOpen(!open)}
-                className="btn btn-ghost btn-circle avatar"
-              >
+              <button onClick={() => setOpen(!open)} className="btn btn-ghost btn-circle avatar">
                 <img
                   src={user.photoURL || "https://i.ibb.co/4pDNDk1/avatar.png"}
                   className="w-10 rounded-full"
@@ -119,34 +110,35 @@ const Navbar = () => {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 10 }}
                     transition={{ duration: 0.25 }}
-                    className="
-                      absolute right-0 mt-3 w-64
-                      bg-white dark:bg-[#141414]
-                      rounded-xl shadow-xl
-                      border border-gray-200 dark:border-[#1F1F1F]
-                      p-4 z-50
-                    "
+                    className={`
+                      absolute right-0 mt-3 w-64 p-4 rounded-xl shadow-xl z-50 text-sm border
+                      ${dark
+                        ? "bg-[#171717] border-[#2A2A2A] text-gray-200"
+                        : "bg-white border-gray-200 text-gray-800"}
+                    `}
                   >
-                    <p className="font-semibold">
-                      {user.displayName || "CityFix User"}
-                    </p>
-                    <p className="text-sm text-gray-500 mb-2">
-                      {user.email}
-                    </p>
+                    <p className="font-semibold">{user.displayName || "CityFix User"}</p>
+                    <p className="text-gray-500 dark:text-gray-400 mb-2">{user.email}</p>
 
-                    {/* Role badge */}
                     {!roleLoading && (
-                      <span className="inline-block mb-3 text-xs px-2 py-1 rounded bg-primary/10 text-primary capitalize">
+                      <span className={`
+                        inline-block mb-3 text-xs px-2 py-1 rounded capitalize
+                        ${dark
+                          ? "bg-purple-900/40 text-purple-300"
+                          : "bg-blue-100 text-blue-600"}
+                      `}>
                         {role}
                       </span>
                     )}
 
-                    {/* Dashboard */}
                     {!roleLoading && (
                       <Link
                         to={getDashboardPath()}
                         onClick={() => setOpen(false)}
-                        className="block px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-[#1F1F1F]"
+                        className={`
+                          block px-3 py-2 rounded-md transition
+                          ${dark ? "hover:bg-[#232323]" : "hover:bg-gray-100"}
+                        `}
                       >
                         Dashboard
                       </Link>
@@ -157,7 +149,10 @@ const Navbar = () => {
                         logoutUser();
                         setOpen(false);
                       }}
-                      className="w-full text-left px-3 py-2 rounded-md text-red-600 hover:bg-red-50 dark:hover:bg-red-900/40"
+                      className={`
+                        block w-full px-3 py-2 text-red-600 rounded-md transition
+                        ${dark ? "hover:bg-red-900/40" : "hover:bg-red-50"}
+                      `}
                     >
                       Logout
                     </button>
@@ -166,7 +161,6 @@ const Navbar = () => {
               </AnimatePresence>
             </div>
           )}
-
         </div>
       </div>
     </div>
