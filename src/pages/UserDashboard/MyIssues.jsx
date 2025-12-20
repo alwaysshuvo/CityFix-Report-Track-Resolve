@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import Swal from "sweetalert2";
 import { useAuth } from "../../hooks/useAuth";
 
 const MyIssues = () => {
@@ -21,36 +20,9 @@ const MyIssues = () => {
       );
       setIssues(res.data);
     } catch {
-      Swal.fire("Error", "Failed to load your issues", "error");
+      console.error("Failed to load issues");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleDelete = async (id) => {
-    const confirm = await Swal.fire({
-      title: "Delete Issue?",
-      text: "This action cannot be undone",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Delete",
-    });
-
-    if (!confirm.isConfirmed) return;
-
-    try {
-      await axios.delete(`http://localhost:5000/issues/${id}`);
-
-      Swal.fire({
-        icon: "success",
-        title: "Issue Deleted",
-        timer: 1200,
-        showConfirmButton: false,
-      });
-
-      fetchMyIssues();
-    } catch {
-      Swal.fire("Error", "Delete failed", "error");
     }
   };
 
@@ -73,8 +45,8 @@ const MyIssues = () => {
               <th>Title</th>
               <th>Status</th>
               <th>Priority</th>
-              <th>Assigned</th>
-              <th>Action</th>
+              <th>Assigned Staff</th>
+              <th>Reported At</th>
             </tr>
           </thead>
 
@@ -84,7 +56,15 @@ const MyIssues = () => {
                 <td className="font-medium">{issue.title}</td>
 
                 <td>
-                  <span className="badge badge-outline">
+                  <span
+                    className={`badge ${
+                      issue.status === "pending"
+                        ? "badge-warning"
+                        : issue.status === "in-progress"
+                        ? "badge-info"
+                        : "badge-success"
+                    }`}
+                  >
                     {issue.status}
                   </span>
                 </td>
@@ -105,23 +85,23 @@ const MyIssues = () => {
 
                 <td>
                   {issue.assignedStaff ? (
-                    <span className="text-sm">
-                      {issue.assignedStaff.name}
-                    </span>
+                    <div>
+                      <p className="font-medium">
+                        {issue.assignedStaff.name}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {issue.assignedStaff.email}
+                      </p>
+                    </div>
                   ) : (
                     <span className="italic text-gray-400">
-                      Not assigned
+                      Not Assigned
                     </span>
                   )}
                 </td>
 
                 <td>
-                  <button
-                    onClick={() => handleDelete(issue._id)}
-                    className="btn btn-xs btn-error"
-                  >
-                    Delete
-                  </button>
+                  {new Date(issue.createdAt).toLocaleDateString()}
                 </td>
               </tr>
             ))}

@@ -4,10 +4,13 @@ import Footer from "../components/Footer/Footer";
 import CityFixLoader from "../components/loader/CityFixLoader";
 import { useEffect, useState } from "react";
 import ScrollToTop from "../components/ScrollToTop/ScrollToTop";
+import { useContext } from "react";
+import { ThemeContext } from "../provider/ThemeContext";
 
 const MainLayout = () => {
   const location = useLocation();
   const [isLoading, setIsLoading] = useState(true);
+  const { dark } = useContext(ThemeContext);
 
   useEffect(() => {
     setIsLoading(true);
@@ -16,10 +19,17 @@ const MainLayout = () => {
   }, [location]);
 
   return (
-    <div className="min-h-screen bg-gray-50 text-black dark:bg-[#0B0B0B] dark:text-gray-200 transition-colors duration-300">
+    <div
+      className={`
+        min-h-screen transition-colors duration-300
+        ${dark ? "bg-[#0B0B0B] text-gray-200" : "bg-gray-50 text-black"}
+      `}
+    >
       <ScrollToTop />
       <Navbar />
-      <div className="pt-20">{isLoading ? <CityFixLoader /> : <Outlet />}</div>
+      <div className="pt-20">
+        {isLoading ? <CityFixLoader /> : <Outlet />}
+      </div>
       <Footer />
     </div>
   );

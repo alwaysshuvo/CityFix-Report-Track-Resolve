@@ -25,9 +25,18 @@ const Navbar = () => {
   }, []);
 
   const navLinkClass = ({ isActive }) =>
-    isActive
-      ? "font-semibold text-blue-600 dark:text-purple-300 pb-1 border-b-2 border-blue-600 dark:border-purple-300"
-      : "text-gray-700 hover:text-blue-600 dark:text-gray-300 dark:hover:text-purple-300 transition";
+  isActive
+    ? `
+      font-semibold
+      ${dark ? "text-purple-300 border-b-2 border-purple-300"
+            : "text-black border-b-2 border-blue-600"}
+      pb-1
+    `
+    : `
+      ${dark ? "text-gray-300 hover:text-purple-300"
+            : "text-black hover:text-blue-600"}
+      transition
+    `;
 
   const getDashboardPath = () => {
     if (role === "admin") return "/admin";

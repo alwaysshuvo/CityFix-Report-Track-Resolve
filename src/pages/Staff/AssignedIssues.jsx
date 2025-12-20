@@ -10,11 +10,11 @@ const AssignedIssues = () => {
 
   useEffect(() => {
     if (user?.email) {
-      fetchIssues();
+      fetchAssignedIssues();
     }
   }, [user]);
 
-  const fetchIssues = async () => {
+  const fetchAssignedIssues = async () => {
     try {
       const res = await axios.get(
         `http://localhost:5000/issues/staff/${user.email}`
@@ -28,23 +28,19 @@ const AssignedIssues = () => {
   };
 
   const updateStatus = async (id, status) => {
-    try {
-      await axios.patch(
-        `http://localhost:5000/issues/status/${id}`,
-        { status }
-      );
+    await axios.patch(
+      `http://localhost:5000/issues/status/${id}`,
+      { status }
+    );
 
-      Swal.fire({
-        icon: "success",
-        title: "Status Updated",
-        timer: 1200,
-        showConfirmButton: false,
-      });
+    fetchAssignedIssues();
 
-      fetchIssues();
-    } catch {
-      Swal.fire("Error", "Status update failed", "error");
-    }
+    Swal.fire({
+      icon: "success",
+      title: "Status Updated",
+      timer: 1200,
+      showConfirmButton: false,
+    });
   };
 
   if (loading) {
@@ -76,7 +72,17 @@ const AssignedIssues = () => {
                 <td className="font-medium">{issue.title}</td>
 
                 <td>
-                  <span className="badge badge-outline">
+                  <span
+                    className={`badge ${
+                      issue.status === "pending"
+                        ? "badge-warning"
+                        : issue.status === "in-progress"
+                        ? "badge-info"
+                        : issue.status === "resolved"
+                        ? "badge-success"
+                        : "badge-neutral"
+                    }`}
+                  >
                     {issue.status}
                   </span>
                 </td>

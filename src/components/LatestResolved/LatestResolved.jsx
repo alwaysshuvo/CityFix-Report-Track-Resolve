@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { ThemeContext } from "../../provider/ThemeContext";
 
 const LatestResolved = () => {
   const [issues, setIssues] = useState([]);
+  const { dark } = useContext(ThemeContext);
 
   useEffect(() => {
     const mockData = [
@@ -45,7 +47,12 @@ const LatestResolved = () => {
 
   return (
     <section className="max-w-7xl mx-auto px-4 mt-16">
-      <h2 className="text-3xl md:text-4xl font-bold text-center mb-8">
+      <h2
+        className={`
+          text-3xl md:text-4xl font-bold text-center mb-8 transition
+          ${dark ? "text-white" : "text-gray-800"}
+        `}
+      >
         Latest Resolved Issues
       </h2>
 
@@ -64,7 +71,14 @@ const LatestResolved = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.4, delay: index * 0.1 }}
             whileHover={{ scale: 1.05 }}
-            className="bg-white border rounded-xl shadow hover:shadow-xl transition p-4 cursor-pointer"
+            className={`
+              rounded-xl border cursor-pointer p-4 transition-all duration-300 shadow
+              ${
+                dark
+                  ? "bg-[#111] border-purple-500/20 shadow-[0_0_18px_rgba(168,85,247,0.25)] text-gray-200"
+                  : "bg-white border-gray-200 hover:shadow-xl text-gray-800"
+              }
+            `}
           >
             <img
               src={issue.image}
@@ -72,15 +86,48 @@ const LatestResolved = () => {
               className="w-full h-40 object-cover rounded-md"
             />
 
-            <h3 className="text-xl font-semibold mt-4">{issue.title}</h3>
-            <p className="text-gray-600 text-sm mt-1">{issue.location}</p>
+            <h3
+              className={`
+                text-xl font-semibold mt-4
+                ${dark ? "text-white" : "text-gray-800"}
+              `}
+            >
+              {issue.title}
+            </h3>
+
+            <p
+              className={`
+                text-sm mt-1
+                ${dark ? "text-gray-400" : "text-gray-600"}
+              `}
+            >
+              {issue.location}
+            </p>
 
             <div className="mt-3 flex justify-between items-center">
-              <span className="badge badge-success">{issue.status}</span>
+              <span
+                className={`
+                  px-3 py-1 rounded text-xs font-semibold
+                  ${
+                    dark
+                      ? "bg-purple-600/30 text-purple-300"
+                      : "bg-green-100 text-green-700"
+                  }
+                `}
+              >
+                {issue.status}
+              </span>
 
               <Link
                 to={`/issue/${issue._id}`}
-                className="btn btn-outline btn-primary btn-sm"
+                className={`
+                  btn btn-sm rounded-lg transition
+                  ${
+                    dark
+                      ? "border-purple-500 text-purple-300 hover:bg-purple-900/30"
+                      : "btn-outline btn-primary"
+                  }
+                `}
               >
                 View
               </Link>
@@ -93,7 +140,14 @@ const LatestResolved = () => {
       <div className="flex justify-center mt-10">
         <Link
           to="/all-issues"
-          className="px-6 py-3 bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700 transition"
+          className={`
+            px-6 py-3 rounded-lg shadow transition font-semibold
+            ${
+              dark
+                ? "bg-purple-600 text-white hover:bg-purple-700 shadow-[0_0_15px_rgba(168,85,247,0.35)]"
+                : "bg-indigo-600 text-white hover:bg-indigo-700"
+            }
+          `}
         >
           View All Issues →
         </Link>

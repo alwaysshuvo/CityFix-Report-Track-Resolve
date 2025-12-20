@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { ThemeContext } from "../../provider/ThemeContext";
 
 const faqs = [
   {
@@ -36,47 +37,78 @@ const faqs = [
 
 const Faq = () => {
   const [openIndex, setOpenIndex] = useState(null);
+  const { dark } = useContext(ThemeContext);
 
   return (
-    <div className="pt-28 pb-20 max-w-4xl mx-auto px-5">
-      
+    <div
+      className={`
+        pt-28 pb-20 max-w-4xl mx-auto px-5 transition-all duration-300
+        ${dark ? "text-gray-200" : "text-black"}
+      `}
+    >
+      {/* Title */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="text-center mb-12"
       >
-        <h1 className="text-4xl font-extrabold">
-          Frequently Asked <span className="text-primary">Questions</span>
+        <h1
+          className={`
+            text-4xl font-extrabold
+            ${dark ? "text-white" : "text-slate-900"}
+          `}
+        >
+          Frequently Asked{" "}
+          <span className={dark ? "text-purple-400" : "text-primary"}>
+            Questions
+          </span>
         </h1>
-        <p className="text-gray-600 mt-2">
+        <p className={`${dark ? "text-gray-400" : "text-gray-600"} mt-2`}>
           Find answers to your questions about using CityFix.
         </p>
       </motion.div>
 
+      {/* FAQ Items */}
       <div className="space-y-4">
         {faqs.map((faq, index) => (
           <div
             key={index}
-            className="bg-white shadow-md border border-gray-100 rounded-xl overflow-hidden"
+            className={`
+              rounded-xl overflow-hidden transition border shadow-md
+              ${
+                dark
+                  ? "bg-[#111] border-gray-800 shadow-purple-800/30"
+                  : "bg-white border-gray-100"
+              }
+            `}
           >
+            {/* FAQ Button */}
             <button
               className="w-full text-left p-5 flex justify-between items-center"
-              onClick={() => setOpenIndex(openIndex === index ? null : index)}
+              onClick={() =>
+                setOpenIndex(openIndex === index ? null : index)
+              }
             >
-              <span className="font-semibold text-gray-800 text-lg">
+              <span
+                className={`
+                  font-semibold text-lg
+                  ${dark ? "text-gray-200" : "text-gray-800"}
+                `}
+              >
                 {faq.question}
               </span>
 
               <motion.span
                 animate={{ rotate: openIndex === index ? 180 : 0 }}
                 transition={{ duration: 0.3 }}
-                className="text-primary text-xl"
+                className={dark ? "text-purple-400 text-xl" : "text-primary text-xl"}
               >
                 ▼
               </motion.span>
             </button>
 
+            {/* FAQ Answer */}
             <AnimatePresence>
               {openIndex === index && (
                 <motion.div
@@ -84,7 +116,10 @@ const Faq = () => {
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
                   transition={{ duration: 0.3 }}
-                  className="px-5 pb-5 text-gray-600"
+                  className={`
+                    px-5 pb-5 leading-relaxed
+                    ${dark ? "text-gray-400" : "text-gray-600"}
+                  `}
                 >
                   {faq.answer}
                 </motion.div>
