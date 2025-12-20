@@ -1,5 +1,6 @@
-// src/components/dashboard/DashboardSidebar.jsx
 import { NavLink } from "react-router-dom";
+import { useContext } from "react";
+import { ThemeContext } from "../../provider/ThemeContext";
 import {
   LayoutDashboard,
   FilePlus,
@@ -9,18 +10,36 @@ import {
 } from "lucide-react";
 
 const UserDashboardSidebar = () => {
+  const { dark } = useContext(ThemeContext);
+
   const linkClass = ({ isActive }) =>
     isActive
-      ? "flex items-center gap-3 px-4 py-3 bg-primary text-white rounded-lg"
-      : "flex items-center gap-3 px-4 py-3 hover:bg-gray-200 rounded-lg";
+      ? `
+        flex items-center gap-3 px-4 py-3 rounded-lg
+        bg-primary text-white font-semibold
+      `
+      : `
+        flex items-center gap-3 px-4 py-3 rounded-lg transition
+        ${dark ? "text-gray-300 hover:bg-[#222]" : "text-gray-700 hover:bg-gray-200"}
+      `;
 
   return (
-    <aside className="w-64 bg-white shadow-lg p-5 hidden md:block">
+    <aside
+      className={`
+        w-64 p-5 hidden md:block transition-all duration-300 shadow-lg
+        ${dark ? "bg-[#0B0B0B] text-white shadow-none border-r border-[#222]" : "bg-white text-gray-900"}
+      `}
+    >
       <h2 className="text-2xl font-extrabold mb-8 text-primary">
         CityFix
       </h2>
 
-      <nav className="space-y-2 text-gray-700 font-medium">
+      <nav
+        className={`
+          space-y-2 font-medium
+          ${dark ? "text-gray-300" : "text-gray-700"}
+        `}
+      >
         <NavLink to="/dashboard" end className={linkClass}>
           <LayoutDashboard size={20} /> Dashboard
         </NavLink>
@@ -37,7 +56,17 @@ const UserDashboardSidebar = () => {
           <User size={20} /> Profile
         </NavLink>
 
-        <button className="flex items-center gap-3 px-4 py-3 text-red-500 hover:bg-red-50 rounded-lg w-full">
+        <button
+          className={`
+            flex items-center gap-3 px-4 py-3 rounded-lg w-full font-semibold
+            transition
+            ${
+              dark
+                ? "text-red-400 hover:bg-[#220000]"
+                : "text-red-600 hover:bg-red-50"
+            }
+          `}
+        >
           <LogOut size={20} /> Logout
         </button>
       </nav>

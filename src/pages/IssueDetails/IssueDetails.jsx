@@ -1,21 +1,48 @@
-import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
 import axios from "axios";
+import useRole from "../../hooks/useRole";
+import Swal from "sweetalert2";
 
 const IssueDetails = () => {
   const { id } = useParams();
+  const { role } = useRole();
+
   const [issue, setIssue] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios
-      .get(`http://localhost:5000/issues/${id}`)
-      .then((res) => {
-        setIssue(res.data);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+    fetchIssue();
   }, [id]);
+
+  const fetchIssue = async () => {
+    try {
+      const res = await axios.get(
+        `http://localhost:5000/issues/${id}`
+      );
+      setIssue(res.data);
+    } catch {
+      Swal.fire("Error", "Failed to load issue", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateStatus = async (status) => {
+    await axios.patch(
+      `http://localhost:5000/issues/status/${id}`,
+      { status }
+    );
+
+    Swal.fire({
+      icon: "success",
+      title: "Status Updated",
+      timer: 1200,
+      showConfirmButton: false,
+    });
+
+    fetchIssue();
+  };
 
   if (loading) {
     return (
@@ -26,100 +53,72 @@ const IssueDetails = () => {
   }
 
   if (!issue) {
-    return (
-      <div className="text-center mt-20 text-gray-500">
-        Issue not found
-      </div>
-    );
+    return <p className="text-center mt-20">Issue not found</p>;
   }
 
-  const statusSteps = [
-    "pending",
-    "in-progress",
-    "resolved",
-    "closed",
-  ];
-
   return (
-    <div className="max-w-5xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-4">{issue.title}</h1>
+    <div className="max-w-4xl mx-auto p-6 bg-base-100 rounded-xl shadow">
+      <h1 className="text-3xl font-bold mb-2">{issue.title}</h1>
 
-      {/* META */}
-      <div className="flex flex-wrap gap-3 mb-6">
-        <span className="badge badge-outline">{issue.category}</span>
+      <p className="text-gray-500 mb-4">{issue.description}</p>
 
-        <span
-          className={`badge ${
-            issue.priority === "high"
-              ? "badge-error"
-              : issue.priority === "medium"
-              ? "badge-warning"
-              : "badge-success"
-          }`}
-        >
-          {issue.priority}
+      <div className="flex flex-wrap gap-4 mb-6">
+        <span className="badge badge-outline">
+          Status: {issue.status}
         </span>
 
-        <span className="badge badge-info">
-          {issue.status}
+        <span className="badge badge-outline">
+          Priority: {issue.priority}
         </span>
+
+        {issue.location && (
+          <span className="badge badge-outline">
+            📍 {issue.location}
+          </span>
+        )}
       </div>
 
-      {/* DESCRIPTION */}
-      <div className="bg-base-100 p-6 rounded-xl shadow mb-6">
-        <h3 className="font-semibold mb-2">Description</h3>
-        <p className="text-gray-600">
-          {issue.description}
-        </p>
-      </div>
+      {/* Assigned Staff */}
+      <div className="mb-6">
+        <h3 className="font-semibold mb-1">Assigned Staff</h3>
 
-      {/* INFO */}
-      <div className="grid md:grid-cols-2 gap-6 mb-8">
-        <div className="bg-base-100 p-6 rounded-xl shadow">
-          <h4 className="font-semibold mb-2">Reported By</h4>
-          <p>{issue.authorEmail || "Anonymous"}</p>
-          <p className="text-sm text-gray-500">
-            {new Date(issue.createdAt).toLocaleString()}
+        {issue.assignedStaff ? (
+          <p>
+            {issue.assignedStaff.name} (
+            {issue.assignedStaff.email})
           </p>
-        </div>
-
-        <div className="bg-base-100 p-6 rounded-xl shadow">
-          <h4 className="font-semibold mb-2">Assigned Staff</h4>
-          {issue.assignedStaff ? (
-            <>
-              <p>{issue.assignedStaff.name}</p>
-              <p className="text-sm text-gray-500">
-                {issue.assignedStaff.email}
-              </p>
-            </>
-          ) : (
-            <p className="italic text-gray-400">
-              Not assigned yet
-            </p>
-          )}
-        </div>
+        ) : (
+          <p className="italic text-gray-400">
+            Not assigned yet
+          </p>
+        )}
       </div>
 
-      {/* STATUS TIMELINE */}
-      <div className="bg-base-100 p-6 rounded-xl shadow">
-        <h4 className="font-semibold mb-4">Progress</h4>
+      {/* ADMIN / STAFF ACTION */}
+      {(role === "admin" || role === "staff") && (
+        <div className="flex gap-3 mt-6">
+          <button
+            onClick={() => updateStatus("pending")}
+            className="btn btn-sm"
+          >
+            Pending
+          </button>
 
-        <ul className="steps w-full">
-          {statusSteps.map((step) => (
-            <li
-              key={step}
-              className={`step ${
-                statusSteps.indexOf(step) <=
-                statusSteps.indexOf(issue.status)
-                  ? "step-primary"
-                  : ""
-              }`}
-            >
-              {step}
-            </li>
-          ))}
-        </ul>
-      </div>
+          <button
+            onClick={() => updateStatus("in-progress")}
+            className="btn btn-sm btn-info"
+          >
+            In Progress
+          </button>
+
+          <button
+            onClick={() => updateStatus("resolved")}
+            className="btn btn-sm btn-success"
+          >
+            Resolved
+          </button>
+        </div>
+      )}
     </div>
   );
 };

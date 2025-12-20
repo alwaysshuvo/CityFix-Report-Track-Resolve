@@ -1,30 +1,36 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import axios from "axios";
-import { useAuth } from "../../hooks/useAuth";
+import { AuthContext } from "../../provider/AuthProvider";
+import { Link } from "react-router-dom";
 
 const MyIssues = () => {
-  const { user } = useAuth();
+  const { user } = useContext(AuthContext);
+
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user?.email) {
-      fetchMyIssues();
-    }
-  }, [user]);
+    if (!user?.email) return;
 
-  const fetchMyIssues = async () => {
-    try {
-      const res = await axios.get(
-        `http://localhost:5000/issues/user/${user.email}`
-      );
-      setIssues(res.data);
-    } catch {
-      console.error("Failed to load issues");
-    } finally {
-      setLoading(false);
-    }
-  };
+    const fetchMyIssues = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/issues");
+
+        // only issues created by this user
+        const myIssues = res.data.filter(
+          (issue) => issue.authorEmail === user.email
+        );
+
+        setIssues(myIssues);
+      } catch (error) {
+        console.error("Failed to load issues", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMyIssues();
+  }, [user]);
 
   if (loading) {
     return (
@@ -43,10 +49,10 @@ const MyIssues = () => {
           <thead className="bg-base-200">
             <tr>
               <th>Title</th>
+              <th>Category</th>
               <th>Status</th>
               <th>Priority</th>
-              <th>Assigned Staff</th>
-              <th>Reported At</th>
+              <th>Action</th>
             </tr>
           </thead>
 
@@ -54,6 +60,10 @@ const MyIssues = () => {
             {issues.map((issue) => (
               <tr key={issue._id}>
                 <td className="font-medium">{issue.title}</td>
+
+                <td className="capitalize">
+                  {issue.category || "General"}
+                </td>
 
                 <td>
                   <span
@@ -71,7 +81,7 @@ const MyIssues = () => {
 
                 <td>
                   <span
-                    className={`badge ${
+                    className={`badge badge-outline ${
                       issue.priority === "high"
                         ? "badge-error"
                         : issue.priority === "medium"
@@ -79,37 +89,28 @@ const MyIssues = () => {
                         : "badge-success"
                     }`}
                   >
-                    {issue.priority}
+                    {issue.priority || "normal"}
                   </span>
                 </td>
 
                 <td>
-                  {issue.assignedStaff ? (
-                    <div>
-                      <p className="font-medium">
-                        {issue.assignedStaff.name}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {issue.assignedStaff.email}
-                      </p>
-                    </div>
-                  ) : (
-                    <span className="italic text-gray-400">
-                      Not Assigned
-                    </span>
-                  )}
-                </td>
-
-                <td>
-                  {new Date(issue.createdAt).toLocaleDateString()}
+                  <Link
+                    to={`/issue/${issue._id}`}
+                    className="btn btn-xs btn-primary"
+                  >
+                    View
+                  </Link>
                 </td>
               </tr>
             ))}
 
             {issues.length === 0 && (
               <tr>
-                <td colSpan="5" className="text-center py-6 text-gray-500">
-                  You haven’t reported any issues yet
+                <td
+                  colSpan="5"
+                  className="text-center py-8 text-gray-500"
+                >
+                  You have not reported any issues yet
                 </td>
               </tr>
             )}
