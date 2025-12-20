@@ -1,16 +1,16 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  darkMode: "class", // ⬅️ eta add hobe
+  darkMode: "class",
   content: ["./index.html", "./src/**/*.{js,jsx,ts,tsx}"],
 
   theme: {
     extend: {},
   },
 
+ daisyui: {
+  themes: ["light", "dark"],
+},
+
+
   plugins: [require("daisyui")],
-
-daisyui: {
-  themes: false
-}
-
 };

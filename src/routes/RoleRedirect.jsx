@@ -2,7 +2,7 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import useRole from "../hooks/useRole";
 
-const AdminRoute = ({ children }) => {
+const RoleRedirect = ({ children }) => {
   const { user, loading } = useAuth();
   const { role, loading: roleLoading } = useRole();
 
@@ -14,11 +14,15 @@ const AdminRoute = ({ children }) => {
     );
   }
 
-  if (!user || role !== "admin") {
-    return <Navigate to="/" replace />;
+  if (!user) {
+    return <Navigate to="/login" replace />;
   }
 
-  return children;
+  // 🔁 Role based redirect
+  if (role === "admin") return <Navigate to="/admin" replace />;
+  if (role === "staff") return <Navigate to="/staff" replace />;
+
+  return children; // citizen stays in /dashboard
 };
 
-export default AdminRoute;
+export default RoleRedirect;

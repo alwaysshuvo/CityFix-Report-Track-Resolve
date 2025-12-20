@@ -8,6 +8,7 @@ import {
 } from "firebase/auth";
 import { auth } from "../../firebase/firebase.config";
 import useRole from "../../hooks/useRole";
+import axios from "axios";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -19,7 +20,9 @@ const Login = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // 🔁 Redirect after login based on role
+  /* =========================
+     🔁 ROLE BASED REDIRECT
+  ========================== */
   useEffect(() => {
     if (auth.currentUser && role && !roleLoading) {
       if (role === "admin") navigate("/admin", { replace: true });
@@ -28,32 +31,76 @@ const Login = () => {
     }
   }, [role, roleLoading, navigate]);
 
-  // Email login
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-    } catch {
-      setError("Invalid email or password");
-    } finally {
-      setLoading(false);
-    }
+  /* =========================
+     🔐 GET JWT TOKEN
+  ========================== */
+  const getJwtToken = async (email) => {
+    const res = await axios.post("http://localhost:5000/jwt", { email });
+    localStorage.setItem("access-token", res.data.token);
   };
 
-  // Google login
+  /* =========================
+     EMAIL LOGIN
+  ========================== */
+  const handleLogin = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+  setError("");
+
+  try {
+    const result = await signInWithEmailAndPassword(auth, email, password);
+
+    // 🔐 get JWT
+    const res = await fetch("http://localhost:5000/jwt", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ email: result.user.email }),
+    });
+
+    const data = await res.json();
+    localStorage.setItem("access-token", data.token);
+  } catch {
+    setError("Invalid email or password");
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+  /* =========================
+     GOOGLE LOGIN
+  ========================== */
   const handleGoogleLogin = async () => {
     const provider = new GoogleAuthProvider();
     setError("");
 
     try {
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+
+      // Save user in DB (role assign হয় এখানে)
+      await axios.post("http://localhost:5000/users", {
+        name: result.user.displayName,
+        email: result.user.email,
+        photo: result.user.photoURL,
+      });
+
+      // 🔐 get JWT
+      await getJwtToken(result.user.email);
     } catch {
       setError("Google login failed");
     }
   };
+
+  /* =========================
+     LOADING (ROLE FETCH)
+  ========================== */
+  if (roleLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <span className="loading loading-spinner loading-lg"></span>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#4f46e5] via-[#7c3aed] to-[#ec4899] px-4">
@@ -63,6 +110,7 @@ const Login = () => {
         transition={{ duration: 0.5 }}
         className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8"
       >
+        {/* HEADER */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-800">
             Login to <span className="text-indigo-600">CityFix</span>
@@ -72,10 +120,13 @@ const Login = () => {
           </p>
         </div>
 
+        {/* FORM */}
         <form onSubmit={handleLogin} className="space-y-5">
-          {/* Email */}
+          {/* EMAIL */}
           <div>
-            <label className="text-sm font-medium text-gray-700">Email</label>
+            <label className="text-sm font-medium text-gray-700">
+              Email
+            </label>
             <input
               type="email"
               required
@@ -86,7 +137,7 @@ const Login = () => {
             />
           </div>
 
-          {/* Password with toggle */}
+          {/* PASSWORD */}
           <div>
             <label className="text-sm font-medium text-gray-700">
               Password
@@ -96,7 +147,7 @@ const Login = () => {
               <input
                 type={showPassword ? "text" : "password"}
                 required
-                className="mt-1 input input-bordered w-full pr-12"
+                className="mt-1 input input-bordered w-full pr-14"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -124,12 +175,14 @@ const Login = () => {
           </button>
         </form>
 
+        {/* DIVIDER */}
         <div className="flex items-center gap-3 my-6">
           <div className="flex-1 h-px bg-gray-200" />
           <span className="text-xs text-gray-400">OR</span>
           <div className="flex-1 h-px bg-gray-200" />
         </div>
 
+        {/* GOOGLE */}
         <button
           onClick={handleGoogleLogin}
           className="btn btn-outline w-full flex items-center justify-center gap-2"
@@ -142,6 +195,7 @@ const Login = () => {
           Continue with Google
         </button>
 
+        {/* REGISTER */}
         <p className="text-center text-sm text-gray-600 mt-6">
           Don’t have an account?{" "}
           <Link to="/register" className="text-indigo-600 font-semibold">

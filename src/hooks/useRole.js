@@ -1,38 +1,33 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import axios from "axios";
-import { useAuth } from "./useAuth";
+import { AuthContext } from "../provider/AuthProvider";
 
 const useRole = () => {
-  const { user } = useAuth();
-
+  const { user, loading } = useContext(AuthContext);
   const [role, setRole] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [roleLoading, setRoleLoading] = useState(true);
 
   useEffect(() => {
-    if (!user?.email) {
-      setRole(null);
-      setLoading(false);
-      return;
+    if (!loading && user?.email) {
+      axios
+        .get(`http://localhost:5000/users/${user.email}`)
+        .then((res) => {
+          setRole(res.data?.role || "citizen");
+          setRoleLoading(false);
+        })
+        .catch(() => {
+          setRole("citizen");
+          setRoleLoading(false);
+        });
     }
 
-    const fetchRole = async () => {
-      try {
-        const res = await axios.get(
-          `http://localhost:5000/users/${user.email}`
-        );
-        setRole(res.data?.role || "citizen");
-      } catch (error) {
-        console.error("Failed to fetch role", error);
-        setRole("citizen");
-      } finally {
-        setLoading(false);
-      }
-    };
+    if (!loading && !user) {
+      setRole(null);
+      setRoleLoading(false);
+    }
+  }, [user, loading]);
 
-    fetchRole();
-  }, [user]);
-
-  return { role, loading };
+  return { role, loading: roleLoading };
 };
 
 export default useRole;

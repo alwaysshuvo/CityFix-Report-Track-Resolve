@@ -2,7 +2,6 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import useRole from "../hooks/useRole";
 
-
 const StaffRoute = ({ children }) => {
   const { user, loading } = useAuth();
   const { role, loading: roleLoading } = useRole();

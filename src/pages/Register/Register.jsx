@@ -4,6 +4,7 @@ import { useContext, useState } from "react";
 import Swal from "sweetalert2";
 import { AuthContext } from "../../provider/AuthProvider";
 import { FiEye, FiEyeOff } from "react-icons/fi";
+import { updateProfile } from "firebase/auth";
 
 const Register = () => {
   const { createUser, googleLogin } = useContext(AuthContext);
@@ -31,7 +32,7 @@ const Register = () => {
       const data = await res.json();
 
       if (data.success) {
-        setImgURL(data.data.url);
+        setImgURL(data.data.display_url);
         Swal.fire("Uploaded!", "Profile image uploaded!", "success");
       }
     } catch {
@@ -65,7 +66,12 @@ const Register = () => {
     }
 
     try {
-      await createUser(email, password);
+      const userCredential = await createUser(email, password);
+
+      await updateProfile(userCredential.user, {
+        displayName: name,
+        photoURL: imgURL,
+      });
 
       Swal.fire({
         icon: "success",
@@ -131,7 +137,8 @@ const Register = () => {
             </div>
           )}
 
-          <label className="block mt-4 cursor-pointer bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm">
+          <label className="block mt-4 cursor-pointer bg-blue-600 hover:bg-blue-700 
+            text-white px-4 py-2 rounded-lg text-sm">
             {uploading ? "Uploading..." : "Upload Profile Image"}
             <input type="file" onChange={handleImgUpload} className="hidden" />
           </label>
@@ -139,27 +146,16 @@ const Register = () => {
 
         {/* Form */}
         <form onSubmit={handleRegister} className="space-y-6">
-
           {/* Name */}
           <div>
             <label className="block font-medium mb-1">Full Name</label>
-            <input
-              type="text"
-              name="name"
-              required
-              className="input input-bordered w-full"
-            />
+            <input type="text" name="name" required className="input input-bordered w-full" />
           </div>
 
           {/* Email */}
           <div>
             <label className="block font-medium mb-1">Email</label>
-            <input
-              type="email"
-              name="email"
-              required
-              className="input input-bordered w-full"
-            />
+            <input type="email" name="email" required className="input input-bordered w-full" />
           </div>
 
           {/* Password */}
@@ -194,9 +190,7 @@ const Register = () => {
               />
               <button
                 type="button"
-                onClick={() =>
-                  setShowConfirmPassword(!showConfirmPassword)
-                }
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-xl text-gray-500"
               >
                 {showConfirmPassword ? <FiEyeOff /> : <FiEye />}
@@ -204,18 +198,23 @@ const Register = () => {
             </div>
           </div>
 
-          {/* Terms */}
-          <label className="flex items-start gap-2 text-sm">
-            <input type="checkbox" name="terms" className="checkbox checkbox-sm mt-1" />
-            <span className="text-gray-600">
-              I agree to the{" "}
-              <Link to="#" className="text-blue-600 hover:underline">
-                Terms & Conditions
-              </Link>
-            </span>
-          </label>
+          {/* Terms Checkbox */}
+          <div className="form-control">
+            <label className="cursor-pointer flex items-center gap-3 text-sm">
+              <input
+                type="checkbox"
+                name="terms"
+                className="checkbox checkbox-primary"
+              />
+              <span className="text-gray-600">
+                I agree to the{" "}
+                <Link to="#" className="text-blue-600 hover:underline">
+                  Terms & Conditions
+                </Link>
+              </span>
+            </label>
+          </div>
 
-          {/* Register btn */}
           <motion.button
             whileHover={{ scale: 1.04 }}
             whileTap={{ scale: 0.95 }}
@@ -234,7 +233,7 @@ const Register = () => {
           </Link>
         </p>
 
-        {/* OR Divider */}
+        {/* Divider */}
         <div className="mt-6 flex items-center gap-3">
           <div className="h-px bg-gray-300 flex-1"></div>
           <span className="text-gray-400 text-sm">OR</span>

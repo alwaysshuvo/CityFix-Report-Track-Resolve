@@ -1,19 +1,23 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 
 const AssignStaffModal = ({ open, onClose, onAssign }) => {
-  const [selectedStaff, setSelectedStaff] = useState("");
+  const [staffs, setStaffs] = useState([]);
+  const [selectedStaff, setSelectedStaff] = useState(null);
 
-  const staffs = [
-    { id: "staff1", name: "John Doe", email: "john@cityfix.com" },
-    { id: "staff2", name: "Sarah Smith", email: "sarah@cityfix.com" },
-    { id: "staff3", name: "Alex Brown", email: "alex@cityfix.com" },
-  ];
+  useEffect(() => {
+    if (open) {
+      axios.get("http://localhost:5000/staff").then((res) => {
+        setStaffs(res.data);
+      });
+    }
+  }, [open]);
 
   const handleAssign = () => {
     if (!selectedStaff) return;
-    const staff = staffs.find((s) => s.id === selectedStaff);
-    onAssign(staff);
+    onAssign(selectedStaff);
+    onClose();
   };
 
   return (
@@ -29,18 +33,21 @@ const AssignStaffModal = ({ open, onClose, onAssign }) => {
             initial={{ scale: 0.9, y: 20 }}
             animate={{ scale: 1, y: 0 }}
             exit={{ scale: 0.9, y: 20 }}
-            className="bg-base-100 rounded-xl shadow-xl w-full max-w-md p-6"
+            className="bg-base-100 rounded-xl w-full max-w-md p-6"
           >
             <h2 className="text-xl font-bold mb-4">Assign Staff</h2>
 
             <select
               className="select select-bordered w-full"
-              value={selectedStaff}
-              onChange={(e) => setSelectedStaff(e.target.value)}
+              onChange={(e) =>
+                setSelectedStaff(
+                  staffs.find((s) => s._id === e.target.value)
+                )
+              }
             >
-              <option value="">Select a staff</option>
+              <option value="">Select staff</option>
               {staffs.map((staff) => (
-                <option key={staff.id} value={staff.id}>
+                <option key={staff._id} value={staff._id}>
                   {staff.name} ({staff.email})
                 </option>
               ))}

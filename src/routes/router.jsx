@@ -6,6 +6,11 @@ import DashboardLayout from "../layouts/DashboardLayout";
 import AdminLayout from "../layouts/AdminLayout";
 import StaffLayout from "../layouts/StaffLayout";
 
+// Route Guards
+import AdminRoute from "./AdminRoute";
+import StaffRoute from "./StaffRoute";
+import AuthRedirect from "./AuthRedirect";
+
 // Public Pages
 import Home from "../pages/Home/Home";
 import AllIssues from "../pages/AllIssues/AllIssues";
@@ -17,29 +22,27 @@ import Register from "../pages/Register/Register";
 import IssueDetails from "../pages/IssueDetails/IssueDetails";
 import NotFound from "../pages/NotFound/NotFound";
 
-// User Dashboard Pages
+// Citizen Pages
 import UserDashboard from "../pages/UserDashboard/UserDashboard";
 import MyIssues from "../pages/UserDashboard/MyIssues";
 import ReportIssue from "../pages/UserDashboard/ReportIssue";
 import Profile from "../pages/UserDashboard/Profile";
 
-// Admin Dashboard Pages
+// Admin Pages
 import AdminDashboard from "../pages/Admin/AdminDashboard";
 import ManageIssues from "../pages/Admin/ManageIssues";
 import Users from "../pages/Admin/Users";
 import Payments from "../pages/Admin/Payments";
 import ManageStaff from "../pages/Admin/ManageStaff";
 
-// Staff Dashboard Pages
+// Staff Pages
 import StaffDashboard from "../pages/Staff/StaffDashboard";
 import AssignedIssues from "../pages/Staff/AssignedIssues";
 import StaffProfile from "../pages/Staff/StaffProfile";
-import AdminRoute from "../hooks/useRole";
-import StaffRoute from "./StaffRoute";
 
 const router = createBrowserRouter([
   /* =========================
-     🌐 PUBLIC WEBSITE ROUTES
+     🌐 PUBLIC ROUTES
   ========================== */
   {
     path: "/",
@@ -57,11 +60,15 @@ const router = createBrowserRouter([
   },
 
   /* =========================
-     👤 USER DASHBOARD ROUTES
+     👤 DASHBOARD ENTRY (ROLE BASED)
   ========================== */
   {
     path: "/dashboard",
-    element: <DashboardLayout />,
+    element: (
+      <AuthRedirect>
+        <DashboardLayout />
+      </AuthRedirect>
+    ),
     children: [
       { index: true, element: <UserDashboard /> },
       { path: "my-issues", element: <MyIssues /> },
@@ -71,7 +78,7 @@ const router = createBrowserRouter([
   },
 
   /* =========================
-     🛠️ ADMIN DASHBOARD ROUTES
+     🛠️ ADMIN DASHBOARD
   ========================== */
   {
     path: "/admin",
@@ -90,7 +97,7 @@ const router = createBrowserRouter([
   },
 
   /* =========================
-     👷 STAFF DASHBOARD ROUTES
+     👷 STAFF DASHBOARD
   ========================== */
   {
     path: "/staff",
