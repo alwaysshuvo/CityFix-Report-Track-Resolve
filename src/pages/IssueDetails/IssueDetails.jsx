@@ -1,6 +1,6 @@
-import { useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { useParams } from "react-router-dom";
+import axios from "axios";
 
 const IssueDetails = () => {
   const { id } = useParams();
@@ -8,165 +8,117 @@ const IssueDetails = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/public/data/issues.json")
-      .then(res => res.json())
-      .then(data => {
-        const foundIssue = data.find(item => item.id === id);
-        setIssue(foundIssue);
+    axios
+      .get(`http://localhost:5000/issues/${id}`)
+      .then((res) => {
+        setIssue(res.data);
         setLoading(false);
-      });
+      })
+      .catch(() => setLoading(false));
   }, [id]);
 
   if (loading) {
     return (
-      <div className="pt-40 text-center">
-        <span className="loading loading-spinner loading-lg text-primary"></span>
+      <div className="flex justify-center mt-20">
+        <span className="loading loading-spinner loading-lg"></span>
       </div>
     );
   }
 
   if (!issue) {
     return (
-      <div className="pt-40 text-center">
-        <h2 className="text-3xl font-bold mb-4">Issue Not Found</h2>
-        <Link to="/all-issues" className="btn btn-primary">
-          Back to All Issues
-        </Link>
+      <div className="text-center mt-20 text-gray-500">
+        Issue not found
       </div>
     );
   }
 
+  const statusSteps = [
+    "pending",
+    "in-progress",
+    "resolved",
+    "closed",
+  ];
+
   return (
-    <div className="pt-28 pb-20 px-5 bg-base-100">
-      <div className="max-w-6xl mx-auto">
+    <div className="max-w-5xl mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-4">{issue.title}</h1>
 
-        {/* HEADER */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-10"
+      {/* META */}
+      <div className="flex flex-wrap gap-3 mb-6">
+        <span className="badge badge-outline">{issue.category}</span>
+
+        <span
+          className={`badge ${
+            issue.priority === "high"
+              ? "badge-error"
+              : issue.priority === "medium"
+              ? "badge-warning"
+              : "badge-success"
+          }`}
         >
-          <h1 className="text-4xl font-extrabold mb-2">
-            {issue.title}
-          </h1>
-          <p className="text-gray-600">
-            {issue.location} • {issue.category}
+          {issue.priority}
+        </span>
+
+        <span className="badge badge-info">
+          {issue.status}
+        </span>
+      </div>
+
+      {/* DESCRIPTION */}
+      <div className="bg-base-100 p-6 rounded-xl shadow mb-6">
+        <h3 className="font-semibold mb-2">Description</h3>
+        <p className="text-gray-600">
+          {issue.description}
+        </p>
+      </div>
+
+      {/* INFO */}
+      <div className="grid md:grid-cols-2 gap-6 mb-8">
+        <div className="bg-base-100 p-6 rounded-xl shadow">
+          <h4 className="font-semibold mb-2">Reported By</h4>
+          <p>{issue.authorEmail || "Anonymous"}</p>
+          <p className="text-sm text-gray-500">
+            {new Date(issue.createdAt).toLocaleString()}
           </p>
-        </motion.div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-          {/* LEFT CONTENT */}
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="lg:col-span-2 space-y-6"
-          >
-            <img
-              src={issue.image}
-              alt={issue.title}
-              className="w-full h-80 object-cover rounded-xl shadow"
-            />
-
-            <div className="bg-white border rounded-xl p-6 shadow-sm">
-              <h2 className="text-2xl font-semibold mb-3">
-                Issue Description
-              </h2>
-              <p className="text-gray-700 leading-relaxed">
-                {issue.description}
-              </p>
-            </div>
-
-            {/* TIMELINE (static for now) */}
-            <div className="bg-white border rounded-xl p-6 shadow-sm">
-              <h2 className="text-2xl font-semibold mb-6">
-                Issue Timeline
-              </h2>
-
-              <div className="space-y-4">
-                <div>
-                  <p className="font-semibold">Issue reported</p>
-                  <p className="text-sm text-gray-500">
-                    Reported by citizen
-                  </p>
-                </div>
-                <div>
-                  <p className="font-semibold capitalize">
-                    Status: {issue.status}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    Current issue state
-                  </p>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* RIGHT SIDEBAR */}
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="space-y-6"
-          >
-            <div className="bg-white border rounded-xl p-6 shadow-sm space-y-3">
-              <p>
-                <span className="font-medium">Status:</span>{" "}
-                <span
-                  className={`badge ${
-                    issue.status === "resolved"
-                      ? "badge-success"
-                      : issue.status === "in-progress"
-                      ? "badge-warning"
-                      : "badge-info"
-                  }`}
-                >
-                  {issue.status}
-                </span>
-              </p>
-
-              <p>
-                <span className="font-medium">Priority:</span>{" "}
-                <span
-                  className={`badge ${
-                    issue.priority === "high"
-                      ? "badge-error"
-                      : "badge-outline"
-                  }`}
-                >
-                  {issue.priority}
-                </span>
-              </p>
-
-              <p>
-                <span className="font-medium">Upvotes:</span>{" "}
-                {issue.upvotes}
-              </p>
-            </div>
-
-            {/* ACTION BUTTONS (future-ready) */}
-            <div className="bg-white border rounded-xl p-6 shadow-sm space-y-3">
-              <button className="btn btn-primary w-full">
-                Boost Issue (৳100)
-              </button>
-
-              <button className="btn btn-outline w-full">
-                Edit Issue
-              </button>
-
-              <button className="btn btn-outline btn-error w-full">
-                Delete Issue
-              </button>
-            </div>
-          </motion.div>
-
         </div>
 
-        <div className="mt-10">
-          <Link to="/all-issues" className="link link-primary">
-            ← Back to All Issues
-          </Link>
+        <div className="bg-base-100 p-6 rounded-xl shadow">
+          <h4 className="font-semibold mb-2">Assigned Staff</h4>
+          {issue.assignedStaff ? (
+            <>
+              <p>{issue.assignedStaff.name}</p>
+              <p className="text-sm text-gray-500">
+                {issue.assignedStaff.email}
+              </p>
+            </>
+          ) : (
+            <p className="italic text-gray-400">
+              Not assigned yet
+            </p>
+          )}
         </div>
+      </div>
 
+      {/* STATUS TIMELINE */}
+      <div className="bg-base-100 p-6 rounded-xl shadow">
+        <h4 className="font-semibold mb-4">Progress</h4>
+
+        <ul className="steps w-full">
+          {statusSteps.map((step) => (
+            <li
+              key={step}
+              className={`step ${
+                statusSteps.indexOf(step) <=
+                statusSteps.indexOf(issue.status)
+                  ? "step-primary"
+                  : ""
+              }`}
+            >
+              {step}
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );
