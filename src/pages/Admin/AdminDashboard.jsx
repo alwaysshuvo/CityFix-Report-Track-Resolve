@@ -4,24 +4,19 @@ import axios from "axios";
 const AdminDashboard = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const res = await axios.get("http://localhost:5000/admin/stats", {
-          headers: {
-            authorization: `Bearer ${localStorage.getItem("access-token")}`,
-          },
-        });
+    axios
+      .get("http://localhost:5000/admin/stats")
+      .then((res) => {
         setStats(res.data);
-      } catch (error) {
-        console.error("Failed to load admin stats", error);
-      } finally {
         setLoading(false);
-      }
-    };
-
-    fetchStats();
+      })
+      .catch(() => {
+        setError("Failed to load admin statistics");
+        setLoading(false);
+      });
   }, []);
 
   if (loading) {
@@ -32,11 +27,19 @@ const AdminDashboard = () => {
     );
   }
 
+  if (error) {
+    return (
+      <div className="text-center text-red-500 mt-20">
+        {error}
+      </div>
+    );
+  }
+
   return (
     <div>
       <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-6">
+      <div className="grid md:grid-cols-3 lg:grid-cols-6 gap-6">
         <StatCard title="Total Issues" value={stats.totalIssues} />
         <StatCard title="Pending" value={stats.pendingIssues} />
         <StatCard title="In Progress" value={stats.inProgressIssues} />

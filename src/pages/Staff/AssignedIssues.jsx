@@ -8,41 +8,64 @@ const AssignedIssues = () => {
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (user?.email) {
-      fetchAssignedIssues();
-    }
-  }, [user]);
-
-  const fetchAssignedIssues = async () => {
+  /* =========================
+     FETCH ASSIGNED ISSUES
+  ========================== */
+  const fetchIssues = async () => {
     try {
       const res = await axios.get(
         `http://localhost:5000/issues/staff/${user.email}`
       );
       setIssues(res.data);
     } catch {
-      Swal.fire("Error", "Failed to load assigned issues", "error");
+      Swal.fire("Error", "Failed to load issues", "error");
     } finally {
       setLoading(false);
     }
   };
 
-  const updateStatus = async (id, status) => {
-    await axios.patch(
-      `http://localhost:5000/issues/status/${id}`,
-      { status }
-    );
+  useEffect(() => {
+    if (user?.email) {
+      fetchIssues();
+    }
+  }, [user]);
 
-    fetchAssignedIssues();
-
-    Swal.fire({
-      icon: "success",
-      title: "Status Updated",
-      timer: 1200,
-      showConfirmButton: false,
+  /* =========================
+     UPDATE ISSUE STATUS
+  ========================== */
+  const updateStatus = async (issueId, status) => {
+    const confirm = await Swal.fire({
+      title: "Update Status?",
+      text: `Change status to "${status}"`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes",
     });
+
+    if (!confirm.isConfirmed) return;
+
+    try {
+      await axios.patch(
+        `http://localhost:5000/issues/status/${issueId}`,
+        { status }
+      );
+
+      Swal.fire({
+        icon: "success",
+        title: "Status Updated",
+        timer: 1200,
+        showConfirmButton: false,
+      });
+
+      fetchIssues();
+    } catch {
+      Swal.fire("Error", "Failed to update status", "error");
+    }
   };
 
+  /* =========================
+     LOADING
+  ========================== */
   if (loading) {
     return (
       <div className="flex justify-center mt-20">
@@ -72,17 +95,7 @@ const AssignedIssues = () => {
                 <td className="font-medium">{issue.title}</td>
 
                 <td>
-                  <span
-                    className={`badge ${
-                      issue.status === "pending"
-                        ? "badge-warning"
-                        : issue.status === "in-progress"
-                        ? "badge-info"
-                        : issue.status === "resolved"
-                        ? "badge-success"
-                        : "badge-neutral"
-                    }`}
-                  >
+                  <span className="badge badge-outline">
                     {issue.status}
                   </span>
                 </td>
@@ -120,7 +133,10 @@ const AssignedIssues = () => {
 
             {issues.length === 0 && (
               <tr>
-                <td colSpan="4" className="text-center py-6 text-gray-500">
+                <td
+                  colSpan="4"
+                  className="text-center py-6 text-gray-500"
+                >
                   No assigned issues
                 </td>
               </tr>
