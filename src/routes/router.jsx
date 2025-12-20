@@ -31,7 +31,7 @@ import Profile from "../pages/UserDashboard/Profile";
 // Admin Pages
 import AdminDashboard from "../pages/Admin/AdminDashboard";
 import ManageIssues from "../pages/Admin/ManageIssues";
-import Users from "../pages/Admin/Users";
+import ManageUsers from "../pages/Admin/ManageUsers";
 import Payments from "../pages/Admin/Payments";
 import ManageStaff from "../pages/Admin/ManageStaff";
 
@@ -39,6 +39,8 @@ import ManageStaff from "../pages/Admin/ManageStaff";
 import StaffDashboard from "../pages/Staff/StaffDashboard";
 import AssignedIssues from "../pages/Staff/AssignedIssues";
 import StaffProfile from "../pages/Staff/StaffProfile";
+import TestTheme from "../TestTheme";
+
 
 const router = createBrowserRouter([
   /* =========================
@@ -56,6 +58,8 @@ const router = createBrowserRouter([
       { path: "faq", element: <Faq /> },
       { path: "login", element: <Login /> },
       { path: "register", element: <Register /> },
+      { path: "/test-theme", element: <TestTheme /> }
+
     ],
   },
 
@@ -90,7 +94,7 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <AdminDashboard /> },
       { path: "issues", element: <ManageIssues /> },
-      { path: "users", element: <Users /> },
+      { path: "users", element: <ManageUsers /> },
       { path: "staff", element: <ManageStaff /> },
       { path: "payments", element: <Payments /> },
     ],
