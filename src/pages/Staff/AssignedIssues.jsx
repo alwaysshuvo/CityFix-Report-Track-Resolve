@@ -1,71 +1,44 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
-import { useAuth } from "../../hooks/useAuth";
+import { AuthContext } from "../../provider/AuthProvider";
 
 const AssignedIssues = () => {
-  const { user } = useAuth();
+  const { user } = useContext(AuthContext);
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  /* =========================
-     FETCH ASSIGNED ISSUES
-  ========================== */
-  const fetchIssues = async () => {
+  useEffect(() => {
+    if (user?.email) {
+      fetchAssignedIssues();
+    }
+  }, [user]);
+
+  const fetchAssignedIssues = async () => {
     try {
       const res = await axios.get(
         `http://localhost:5000/issues/staff/${user.email}`
       );
       setIssues(res.data);
     } catch {
-      Swal.fire("Error", "Failed to load issues", "error");
+      Swal.fire("Error", "Failed to load assigned issues", "error");
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    if (user?.email) {
-      fetchIssues();
-    }
-  }, [user]);
+  const updateStatus = async (id, status) => {
+    await axios.patch(`http://localhost:5000/issues/status/${id}`, { status });
+    fetchAssignedIssues();
 
-  /* =========================
-     UPDATE ISSUE STATUS
-  ========================== */
-  const updateStatus = async (issueId, status) => {
-    const confirm = await Swal.fire({
-      title: "Update Status?",
-      text: `Change status to "${status}"`,
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Yes",
+    Swal.fire({
+      icon: "success",
+      title: "Status Updated",
+      timer: 1200,
+      showConfirmButton: false,
     });
-
-    if (!confirm.isConfirmed) return;
-
-    try {
-      await axios.patch(
-        `http://localhost:5000/issues/status/${issueId}`,
-        { status }
-      );
-
-      Swal.fire({
-        icon: "success",
-        title: "Status Updated",
-        timer: 1200,
-        showConfirmButton: false,
-      });
-
-      fetchIssues();
-    } catch {
-      Swal.fire("Error", "Failed to update status", "error");
-    }
   };
 
-  /* =========================
-     LOADING
-  ========================== */
   if (loading) {
     return (
       <div className="flex justify-center mt-20">
@@ -83,9 +56,9 @@ const AssignedIssues = () => {
           <thead className="bg-base-200">
             <tr>
               <th>Title</th>
-              <th>Status</th>
               <th>Priority</th>
-              <th>Update</th>
+              <th>Status</th>
+              <th>Action</th>
             </tr>
           </thead>
 
@@ -96,48 +69,42 @@ const AssignedIssues = () => {
 
                 <td>
                   <span className="badge badge-outline">
-                    {issue.status}
-                  </span>
-                </td>
-
-                <td>
-                  <span
-                    className={`badge ${
-                      issue.priority === "high"
-                        ? "badge-error"
-                        : issue.priority === "medium"
-                        ? "badge-warning"
-                        : "badge-success"
-                    }`}
-                  >
                     {issue.priority}
                   </span>
                 </td>
 
                 <td>
-                  <select
-                    value={issue.status}
-                    onChange={(e) =>
-                      updateStatus(issue._id, e.target.value)
-                    }
-                    className="select select-sm"
-                  >
-                    <option value="pending">Pending</option>
-                    <option value="in-progress">In Progress</option>
-                    <option value="resolved">Resolved</option>
-                    <option value="closed">Closed</option>
-                  </select>
+                  <span className="badge badge-info">
+                    {issue.status}
+                  </span>
+                </td>
+
+                <td className="flex gap-2">
+                  {issue.status !== "resolved" && (
+                    <button
+                      onClick={() =>
+                        updateStatus(
+                          issue._id,
+                          issue.status === "pending"
+                            ? "in-progress"
+                            : "resolved"
+                        )
+                      }
+                      className="btn btn-xs btn-success"
+                    >
+                      {issue.status === "pending"
+                        ? "Start"
+                        : "Resolve"}
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}
 
             {issues.length === 0 && (
               <tr>
-                <td
-                  colSpan="4"
-                  className="text-center py-6 text-gray-500"
-                >
-                  No assigned issues
+                <td colSpan="4" className="text-center py-6 text-gray-500">
+                  No assigned issues found
                 </td>
               </tr>
             )}

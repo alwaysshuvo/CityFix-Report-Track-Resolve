@@ -5,32 +5,31 @@ import { Link } from "react-router-dom";
 
 const MyIssues = () => {
   const { user } = useContext(AuthContext);
-
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user?.email) return;
-
-    const fetchMyIssues = async () => {
-      try {
-        const res = await axios.get("http://localhost:5000/issues");
-
-        // only issues created by this user
-        const myIssues = res.data.filter(
-          (issue) => issue.authorEmail === user.email
-        );
-
-        setIssues(myIssues);
-      } catch (error) {
-        console.error("Failed to load issues", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchMyIssues();
+    if (user?.email) {
+      fetchMyIssues();
+    }
   }, [user]);
+
+  const fetchMyIssues = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/issues");
+
+      // 🔥 only current user's issues
+      const myIssues = res.data.filter(
+        (issue) => issue.email === user.email
+      );
+
+      setIssues(myIssues);
+    } catch {
+      console.error("Failed to load issues");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -49,9 +48,9 @@ const MyIssues = () => {
           <thead className="bg-base-200">
             <tr>
               <th>Title</th>
-              <th>Category</th>
-              <th>Status</th>
               <th>Priority</th>
+              <th>Status</th>
+              <th>Assigned Staff</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -61,8 +60,10 @@ const MyIssues = () => {
               <tr key={issue._id}>
                 <td className="font-medium">{issue.title}</td>
 
-                <td className="capitalize">
-                  {issue.category || "General"}
+                <td>
+                  <span className="badge badge-outline">
+                    {issue.priority}
+                  </span>
                 </td>
 
                 <td>
@@ -80,17 +81,20 @@ const MyIssues = () => {
                 </td>
 
                 <td>
-                  <span
-                    className={`badge badge-outline ${
-                      issue.priority === "high"
-                        ? "badge-error"
-                        : issue.priority === "medium"
-                        ? "badge-warning"
-                        : "badge-success"
-                    }`}
-                  >
-                    {issue.priority || "normal"}
-                  </span>
+                  {issue.assignedStaff ? (
+                    <div>
+                      <p className="text-sm font-medium">
+                        {issue.assignedStaff.name}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {issue.assignedStaff.email}
+                      </p>
+                    </div>
+                  ) : (
+                    <span className="italic text-gray-400">
+                      Not assigned
+                    </span>
+                  )}
                 </td>
 
                 <td>
@@ -106,10 +110,7 @@ const MyIssues = () => {
 
             {issues.length === 0 && (
               <tr>
-                <td
-                  colSpan="5"
-                  className="text-center py-8 text-gray-500"
-                >
+                <td colSpan="5" className="text-center py-6 text-gray-500">
                   You have not reported any issues yet
                 </td>
               </tr>
