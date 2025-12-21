@@ -1,20 +1,46 @@
 import { motion } from "framer-motion";
 import Swal from "sweetalert2";
+import axios from "axios";
 import { useContext } from "react";
 import { ThemeContext } from "../../provider/ThemeContext";
+import { AuthContext } from "../../provider/AuthProvider";
 
 const ReportIssue = () => {
   const { dark } = useContext(ThemeContext);
+  const { user } = useContext(AuthContext);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    Swal.fire({
-      icon: "success",
-      title: "Issue Submitted!",
-      text: "Your issue has been reported successfully.",
-      confirmButtonColor: "#6366f1",
-    });
-    e.target.reset();
+    const form = e.target;
+
+    const issue = {
+      title: form.title.value,
+      category: form.category.value,
+      priority: form.priority.value,
+      location: form.location.value,
+      description: form.description.value,
+      reporterEmail: user?.email,
+    };
+
+    try {
+      const res = await axios.post("http://localhost:5000/issues", issue);
+
+      if (res.data.insertedId) {
+        Swal.fire({
+          icon: "success",
+          title: "Issue Submitted!",
+          text: "Your issue has been reported successfully.",
+          confirmButtonColor: "#6366f1",
+        });
+        form.reset();
+      }
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Submission Failed",
+        text: "Backend did not accept your data.",
+      });
+    }
   };
 
   return (
@@ -41,6 +67,7 @@ const ReportIssue = () => {
           <div>
             <label className="font-medium">Issue Title</label>
             <input
+              name="title"
               type="text"
               required
               className={`input w-full mt-2 transition
@@ -53,6 +80,7 @@ const ReportIssue = () => {
             <div>
               <label className="font-medium">Category</label>
               <select
+                name="category"
                 className={`select w-full mt-2 transition
                 ${dark ? "bg-[#111] border-[#333] text-white" : "bg-white border-gray-300 text-gray-900"}`}
                 required
@@ -69,6 +97,7 @@ const ReportIssue = () => {
             <div>
               <label className="font-medium">Priority</label>
               <select
+                name="priority"
                 className={`select w-full mt-2 transition
                 ${dark ? "bg-[#111] border-[#333] text-white" : "bg-white border-gray-300 text-gray-900"}`}
                 required
@@ -82,6 +111,7 @@ const ReportIssue = () => {
             <div>
               <label className="font-medium">Location</label>
               <input
+                name="location"
                 type="text"
                 required
                 className={`input w-full mt-2 transition
@@ -94,6 +124,7 @@ const ReportIssue = () => {
           <div>
             <label className="font-medium">Description</label>
             <textarea
+              name="description"
               required
               rows="4"
               className={`textarea w-full mt-2 transition
@@ -102,6 +133,7 @@ const ReportIssue = () => {
             />
           </div>
 
+          {/* Image store later (Cloudinary, ImgBB) */}
           <div>
             <label className="font-medium">Upload Image</label>
             <input

@@ -33,10 +33,7 @@ const ManageIssues = () => {
     try {
       await axios.patch(
         `http://localhost:5000/issues/assign/${selectedIssue._id}`,
-        {
-          name: staff.name,
-          email: staff.email,
-        }
+        staff // { name, email }
       );
 
       Swal.fire({
@@ -122,7 +119,6 @@ const ManageIssues = () => {
               >
                 <td className="font-medium">{issue.title}</td>
 
-                {/* STATUS */}
                 <td>
                   <span
                     className={`badge badge-outline ${
@@ -133,14 +129,11 @@ const ManageIssues = () => {
                   </span>
                 </td>
 
-                {/* PRIORITY */}
                 <td>
                   <span
                     className={`badge ${
-                      issue.priority === "high"
+                      issue.priority === "High"
                         ? "badge-error"
-                        : issue.priority === "medium"
-                        ? "badge-warning"
                         : "badge-success"
                     }`}
                   >
@@ -148,7 +141,6 @@ const ManageIssues = () => {
                   </span>
                 </td>
 
-                {/* STAFF */}
                 <td>
                   {issue.assignedStaff ? (
                     <div>
@@ -174,7 +166,6 @@ const ManageIssues = () => {
                   )}
                 </td>
 
-                {/* ACTION BUTTON */}
                 <td>
                   <button
                     onClick={() => {
@@ -213,7 +204,6 @@ const ManageIssues = () => {
         </table>
       </div>
 
-      {/* Assign Staff Modal */}
       {selectedIssue && (
         <AssignStaffModal
           open={openModal}

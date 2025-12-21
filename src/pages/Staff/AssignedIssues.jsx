@@ -5,16 +5,17 @@ import { AuthContext } from "../../provider/AuthProvider";
 
 const AssignedIssues = () => {
   const { user } = useContext(AuthContext);
+
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (user?.email) {
-      fetchAssignedIssues();
+      fetchIssues();
     }
   }, [user]);
 
-  const fetchAssignedIssues = async () => {
+  const fetchIssues = async () => {
     try {
       const res = await axios.get(
         `http://localhost:5000/issues/staff/${user.email}`
@@ -28,15 +29,23 @@ const AssignedIssues = () => {
   };
 
   const updateStatus = async (id, status) => {
-    await axios.patch(`http://localhost:5000/issues/status/${id}`, { status });
-    fetchAssignedIssues();
+    try {
+      await axios.patch(
+        `http://localhost:5000/issues/status/${id}`,
+        { status }
+      );
 
-    Swal.fire({
-      icon: "success",
-      title: "Status Updated",
-      timer: 1200,
-      showConfirmButton: false,
-    });
+      Swal.fire({
+        icon: "success",
+        title: "Status Updated",
+        timer: 1200,
+        showConfirmButton: false,
+      });
+
+      fetchIssues();
+    } catch {
+      Swal.fire("Error", "Status update failed", "error");
+    }
   };
 
   if (loading) {
@@ -56,8 +65,8 @@ const AssignedIssues = () => {
           <thead className="bg-base-200">
             <tr>
               <th>Title</th>
-              <th>Priority</th>
               <th>Status</th>
+              <th>Priority</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -68,33 +77,45 @@ const AssignedIssues = () => {
                 <td className="font-medium">{issue.title}</td>
 
                 <td>
+                  <span
+                    className={`badge ${
+                      issue.status === "pending"
+                        ? "badge-warning"
+                        : issue.status === "in-progress"
+                        ? "badge-info"
+                        : "badge-success"
+                    }`}
+                  >
+                    {issue.status}
+                  </span>
+                </td>
+
+                <td>
                   <span className="badge badge-outline">
                     {issue.priority}
                   </span>
                 </td>
 
-                <td>
-                  <span className="badge badge-info">
-                    {issue.status}
-                  </span>
-                </td>
-
                 <td className="flex gap-2">
-                  {issue.status !== "resolved" && (
+                  {issue.status === "pending" && (
                     <button
                       onClick={() =>
-                        updateStatus(
-                          issue._id,
-                          issue.status === "pending"
-                            ? "in-progress"
-                            : "resolved"
-                        )
+                        updateStatus(issue._id, "in-progress")
+                      }
+                      className="btn btn-xs btn-info"
+                    >
+                      Start
+                    </button>
+                  )}
+
+                  {issue.status === "in-progress" && (
+                    <button
+                      onClick={() =>
+                        updateStatus(issue._id, "resolved")
                       }
                       className="btn btn-xs btn-success"
                     >
-                      {issue.status === "pending"
-                        ? "Start"
-                        : "Resolve"}
+                      Resolve
                     </button>
                   )}
                 </td>
@@ -104,7 +125,7 @@ const AssignedIssues = () => {
             {issues.length === 0 && (
               <tr>
                 <td colSpan="4" className="text-center py-6 text-gray-500">
-                  No assigned issues found
+                  No assigned issues
                 </td>
               </tr>
             )}

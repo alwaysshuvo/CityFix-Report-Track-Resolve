@@ -16,7 +16,13 @@ const AssignStaffModal = ({ open, onClose, onAssign }) => {
 
   const handleAssign = () => {
     if (!selectedStaff) return;
-    onAssign(selectedStaff);
+
+    // send only necessary
+    onAssign({
+      name: selectedStaff.name,
+      email: selectedStaff.email,
+    });
+
     onClose();
   };
 

@@ -1,31 +1,32 @@
 import { useContext, useEffect, useState } from "react";
 import axios from "axios";
+import Swal from "sweetalert2";
 import { AuthContext } from "../../provider/AuthProvider";
-import { Link } from "react-router-dom";
 
 const MyIssues = () => {
   const { user } = useContext(AuthContext);
+
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (user?.email) {
-      fetchMyIssues();
+      loadMyIssues();
     }
   }, [user]);
 
-  const fetchMyIssues = async () => {
+  const loadMyIssues = async () => {
     try {
       const res = await axios.get("http://localhost:5000/issues");
 
-      // 🔥 only current user's issues
+      // শুধু logged-in user এর issues
       const myIssues = res.data.filter(
-        (issue) => issue.email === user.email
+        (issue) => issue.reporterEmail === user.email
       );
 
       setIssues(myIssues);
     } catch {
-      console.error("Failed to load issues");
+      Swal.fire("Error", "Failed to load issues", "error");
     } finally {
       setLoading(false);
     }
@@ -48,10 +49,9 @@ const MyIssues = () => {
           <thead className="bg-base-200">
             <tr>
               <th>Title</th>
-              <th>Priority</th>
               <th>Status</th>
+              <th>Priority</th>
               <th>Assigned Staff</th>
-              <th>Action</th>
             </tr>
           </thead>
 
@@ -60,12 +60,7 @@ const MyIssues = () => {
               <tr key={issue._id}>
                 <td className="font-medium">{issue.title}</td>
 
-                <td>
-                  <span className="badge badge-outline">
-                    {issue.priority}
-                  </span>
-                </td>
-
+                {/* STATUS */}
                 <td>
                   <span
                     className={`badge ${
@@ -80,10 +75,18 @@ const MyIssues = () => {
                   </span>
                 </td>
 
+                {/* PRIORITY */}
+                <td>
+                  <span className="badge badge-outline">
+                    {issue.priority}
+                  </span>
+                </td>
+
+                {/* ASSIGNED STAFF */}
                 <td>
                   {issue.assignedStaff ? (
                     <div>
-                      <p className="text-sm font-medium">
+                      <p className="font-medium">
                         {issue.assignedStaff.name}
                       </p>
                       <p className="text-xs text-gray-500">
@@ -92,26 +95,17 @@ const MyIssues = () => {
                     </div>
                   ) : (
                     <span className="italic text-gray-400">
-                      Not assigned
+                      Not Assigned
                     </span>
                   )}
-                </td>
-
-                <td>
-                  <Link
-                    to={`/issue/${issue._id}`}
-                    className="btn btn-xs btn-primary"
-                  >
-                    View
-                  </Link>
                 </td>
               </tr>
             ))}
 
             {issues.length === 0 && (
               <tr>
-                <td colSpan="5" className="text-center py-6 text-gray-500">
-                  You have not reported any issues yet
+                <td colSpan="4" className="text-center py-6 text-gray-500">
+                  You haven’t reported any issues yet
                 </td>
               </tr>
             )}
