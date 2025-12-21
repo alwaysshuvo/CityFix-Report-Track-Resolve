@@ -40,6 +40,7 @@ import StaffDashboard from "../pages/Staff/StaffDashboard";
 import AssignedIssues from "../pages/Staff/AssignedIssues";
 import StaffProfile from "../pages/Staff/StaffProfile";
 import TestTheme from "../TestTheme";
+import PaymentSuccess from "../pages/PaymentSuccess";
 
 
 const router = createBrowserRouter([
@@ -58,7 +59,8 @@ const router = createBrowserRouter([
       { path: "faq", element: <Faq /> },
       { path: "login", element: <Login /> },
       { path: "register", element: <Register /> },
-      { path: "/test-theme", element: <TestTheme /> }
+      { path: "/test-theme", element: <TestTheme /> },
+      { path: "payment-success", element: <PaymentSuccess /> },
 
     ],
   },
@@ -78,6 +80,8 @@ const router = createBrowserRouter([
       { path: "my-issues", element: <MyIssues /> },
       { path: "report-issue", element: <ReportIssue /> },
       { path: "profile", element: <Profile /> },
+   
+
     ],
   },
 

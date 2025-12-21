@@ -2,9 +2,11 @@ import { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { AuthContext } from "../../provider/AuthProvider";
+import { useNavigate } from "react-router-dom";
 
 const AssignedIssues = () => {
   const { user } = useContext(AuthContext);
+  const navigate = useNavigate();
 
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -28,22 +30,23 @@ const AssignedIssues = () => {
     }
   };
 
-  const updateStatus = async (id, status) => {
+  const updateStatus = async (id, newStatus) => {
     try {
-      await axios.patch(
-        `http://localhost:5000/issues/status/${id}`,
-        { status }
-      );
+      await axios.patch(`http://localhost:5000/issues/status/${id}`, {
+        status: newStatus,
+        by: user.email,
+      });
 
       Swal.fire({
         icon: "success",
-        title: "Status Updated",
+        title: `Marked as ${newStatus}!`,
         timer: 1200,
         showConfirmButton: false,
       });
 
       fetchIssues();
-    } catch {
+    } catch (error) {
+      console.log(error);
       Swal.fire("Error", "Status update failed", "error");
     }
   };
@@ -78,7 +81,7 @@ const AssignedIssues = () => {
 
                 <td>
                   <span
-                    className={`badge ${
+                    className={`badge badge-lg ${
                       issue.status === "pending"
                         ? "badge-warning"
                         : issue.status === "in-progress"
@@ -91,29 +94,43 @@ const AssignedIssues = () => {
                 </td>
 
                 <td>
-                  <span className="badge badge-outline">
+                  <span
+                    className={`badge ${
+                      issue.priority === "high"
+                        ? "badge-error"
+                        : issue.priority === "medium"
+                        ? "badge-warning"
+                        : "badge-success"
+                    }`}
+                  >
                     {issue.priority}
                   </span>
                 </td>
 
                 <td className="flex gap-2">
+                  {/* VIEW DETAILS */}
+                  <button
+                    onClick={() => navigate(`/staff/issue/${issue._id}`)}
+                    className="btn btn-xs btn-primary"
+                  >
+                    View
+                  </button>
+
+                  {/* START */}
                   {issue.status === "pending" && (
                     <button
-                      onClick={() =>
-                        updateStatus(issue._id, "in-progress")
-                      }
                       className="btn btn-xs btn-info"
+                      onClick={() => updateStatus(issue._id, "in-progress")}
                     >
                       Start
                     </button>
                   )}
 
+                  {/* RESOLVE */}
                   {issue.status === "in-progress" && (
                     <button
-                      onClick={() =>
-                        updateStatus(issue._id, "resolved")
-                      }
                       className="btn btn-xs btn-success"
+                      onClick={() => updateStatus(issue._id, "resolved")}
                     >
                       Resolve
                     </button>

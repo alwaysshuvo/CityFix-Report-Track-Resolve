@@ -1,9 +1,13 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useContext } from "react";
 import { ThemeContext } from "../../provider/ThemeContext";
+import { AuthContext } from "../../provider/AuthProvider";
+import Swal from "sweetalert2";
 
 const AdminSidebar = ({ open, setOpen }) => {
   const { dark } = useContext(ThemeContext);
+  const { logoutUser } = useContext(AuthContext);
+  const navigate = useNavigate();
 
   const linkClass = ({ isActive }) =>
     `
@@ -19,9 +23,22 @@ const AdminSidebar = ({ open, setOpen }) => {
       }
     `;
 
+  const handleLogout = async () => {
+    const confirm = await Swal.fire({
+      title: "Logout?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, Logout",
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    await logoutUser();
+    navigate("/");
+  };
+
   return (
     <>
-      {/* Overlay (Mobile) */}
       {open && (
         <div
           className="fixed inset-0 bg-black/40 z-40 lg:hidden"
@@ -41,7 +58,6 @@ const AdminSidebar = ({ open, setOpen }) => {
           ${open ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
         `}
       >
-        {/* LOGO / TITLE */}
         <h1 className="text-2xl font-extrabold mb-8">
           <span className={dark ? "text-purple-400" : "text-indigo-600"}>
             CityFix
@@ -55,7 +71,6 @@ const AdminSidebar = ({ open, setOpen }) => {
           </span>
         </h1>
 
-        {/* NAV */}
         <nav className="space-y-2">
           <NavLink to="/admin" end className={linkClass}>
             Dashboard
@@ -73,6 +88,17 @@ const AdminSidebar = ({ open, setOpen }) => {
             Payments
           </NavLink>
         </nav>
+
+        <button
+          onClick={handleLogout}
+          className={`mt-10 w-full py-2 rounded-lg font-medium transition ${
+            dark
+              ? "bg-red-600 hover:bg-red-700 text-white"
+              : "bg-red-500 hover:bg-red-600 text-white"
+          }`}
+        >
+          Logout
+        </button>
       </aside>
     </>
   );

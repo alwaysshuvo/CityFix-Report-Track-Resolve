@@ -5,15 +5,26 @@ import { ThemeContext } from "../../provider/ThemeContext";
 import useRole from "../../hooks/useRole";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sun, Moon } from "lucide-react";
+import axios from "axios";
 
 const Navbar = () => {
   const { user, logoutUser } = useContext(AuthContext);
   const { dark, toggleTheme } = useContext(ThemeContext);
   const { role, loading: roleLoading } = useRole();
 
+  const [dbUser, setDbUser] = useState(null);
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef(null);
 
+  // Load DB user info (premium check)
+  useEffect(() => {
+    if (user?.email) {
+      axios.get(`http://localhost:5000/users/${user.email}`)
+        .then(res => setDbUser(res.data));
+    }
+  }, [user]);
+
+  // Detect outside click
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -25,14 +36,14 @@ const Navbar = () => {
   }, []);
 
   const navLinkClass = ({ isActive }) =>
-  isActive
-    ? `
+    isActive
+      ? `
       font-semibold
       ${dark ? "text-purple-300 border-b-2 border-purple-300"
             : "text-black border-b-2 border-blue-600"}
       pb-1
     `
-    : `
+      : `
       ${dark ? "text-gray-300 hover:text-purple-300"
             : "text-black hover:text-blue-600"}
       transition
@@ -44,9 +55,23 @@ const Navbar = () => {
     return "/dashboard";
   };
 
+  /* =====================================
+     CUSTOM ROLE LABEL WITH PREMIUM 👇
+  ======================================*/
+  let userRoleLabel = role || "user";
+
+  if (dbUser?.role === "citizen" && dbUser?.premium === true) {
+    userRoleLabel = "Premium Citizen";
+  } else if (dbUser?.role === "citizen") {
+    userRoleLabel = "Citizen";
+  } else if (dbUser?.role === "staff") {
+    userRoleLabel = "Staff";
+  } else if (dbUser?.role === "admin") {
+    userRoleLabel = "Admin";
+  }
+
   return (
-    <div
-      className={`
+    <div className={`
         fixed top-0 left-0 right-0 z-50
         shadow-md backdrop-blur transition
         ${dark ? "bg-black text-white" : "bg-white text-black"}
@@ -65,7 +90,7 @@ const Navbar = () => {
           </Link>
         </div>
 
-        {/* Desktop */}
+        {/* Desktop Menu */}
         <div className="navbar-center hidden lg:flex">
           <ul className="flex gap-6 text-lg">
             <NavLink to="/" className={navLinkClass}>Home</NavLink>
@@ -76,10 +101,10 @@ const Navbar = () => {
           </ul>
         </div>
 
-        {/* Right */}
+        {/* Right Side */}
         <div className="navbar-end flex items-center gap-2">
 
-          {/* Theme Switch */}
+          {/* Theme Button */}
           <button
             onClick={toggleTheme}
             className={`
@@ -87,14 +112,10 @@ const Navbar = () => {
               ${dark ? "hover:bg-[#222]" : "hover:bg-gray-100"}
             `}
           >
-            {dark ? (
-              <Sun className="size-5 text-yellow-400" />
-            ) : (
-              <Moon className="size-5 text-gray-700" />
-            )}
+            {dark ? <Sun className="size-5 text-yellow-400" /> : <Moon className="size-5 text-gray-700" />}
           </button>
 
-          {/* Guest */}
+          {/* Guest UI */}
           {!user && (
             <div className="flex gap-2">
               <Link to="/login" className="btn btn-primary btn-sm">Login</Link>
@@ -102,7 +123,7 @@ const Navbar = () => {
             </div>
           )}
 
-          {/* Logged in */}
+          {/* Logged User */}
           {user && (
             <div className="relative" ref={dropdownRef}>
               <button onClick={() => setOpen(!open)} className="btn btn-ghost btn-circle avatar">
@@ -121,37 +142,34 @@ const Navbar = () => {
                     transition={{ duration: 0.25 }}
                     className={`
                       absolute right-0 mt-3 w-64 p-4 rounded-xl shadow-xl z-50 text-sm border
-                      ${dark
-                        ? "bg-[#171717] border-[#2A2A2A] text-gray-200"
-                        : "bg-white border-gray-200 text-gray-800"}
+                      ${dark ? "bg-[#171717] border-[#2A2A2A] text-gray-200" : "bg-white border-gray-200 text-gray-800"}
                     `}
                   >
                     <p className="font-semibold">{user.displayName || "CityFix User"}</p>
                     <p className="text-gray-500 dark:text-gray-400 mb-2">{user.email}</p>
 
+                    {/* ROLE BADGE WITH PREMIUM */}
                     {!roleLoading && (
                       <span className={`
                         inline-block mb-3 text-xs px-2 py-1 rounded capitalize
-                        ${dark
-                          ? "bg-purple-900/40 text-purple-300"
+                        ${dbUser?.premium
+                          ? "bg-yellow-300 text-black"
                           : "bg-blue-100 text-blue-600"}
                       `}>
-                        {role}
+                        {userRoleLabel}
                       </span>
                     )}
 
-                    {!roleLoading && (
-                      <Link
-                        to={getDashboardPath()}
-                        onClick={() => setOpen(false)}
-                        className={`
-                          block px-3 py-2 rounded-md transition
-                          ${dark ? "hover:bg-[#232323]" : "hover:bg-gray-100"}
-                        `}
-                      >
-                        Dashboard
-                      </Link>
-                    )}
+                    <Link
+                      to={getDashboardPath()}
+                      onClick={() => setOpen(false)}
+                      className={`
+                        block px-3 py-2 rounded-md transition
+                        ${dark ? "hover:bg-[#232323]" : "hover:bg-gray-100"}
+                      `}
+                    >
+                      Dashboard
+                    </Link>
 
                     <button
                       onClick={() => {
@@ -170,6 +188,7 @@ const Navbar = () => {
               </AnimatePresence>
             </div>
           )}
+
         </div>
       </div>
     </div>

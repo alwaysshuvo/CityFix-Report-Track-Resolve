@@ -1,6 +1,7 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useContext } from "react";
 import { ThemeContext } from "../../provider/ThemeContext";
+import { AuthContext } from "../../provider/AuthProvider";
 import {
   LayoutDashboard,
   FilePlus,
@@ -8,9 +9,31 @@ import {
   User,
   LogOut,
 } from "lucide-react";
+import Swal from "sweetalert2";
 
 const UserDashboardSidebar = () => {
   const { dark } = useContext(ThemeContext);
+ const { logoutUser } = useContext(AuthContext);
+
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You will be logged out from your account!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Logout",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        await logoutUser();
+        navigate("/login");
+        Swal.fire("Logged Out!", "You have been logged out.", "success");
+      }
+    });
+  };
 
   const linkClass = ({ isActive }) =>
     isActive
@@ -20,19 +43,25 @@ const UserDashboardSidebar = () => {
       `
       : `
         flex items-center gap-3 px-4 py-3 rounded-lg transition
-        ${dark ? "text-gray-300 hover:bg-[#222]" : "text-gray-700 hover:bg-gray-200"}
+        ${
+          dark
+            ? "text-gray-300 hover:bg-[#222]"
+            : "text-gray-700 hover:bg-gray-200"
+        }
       `;
 
   return (
     <aside
       className={`
         w-64 p-5 hidden md:block transition-all duration-300 shadow-lg
-        ${dark ? "bg-[#0B0B0B] text-white shadow-none border-r border-[#222]" : "bg-white text-gray-900"}
+        ${
+          dark
+            ? "bg-[#0B0B0B] text-white shadow-none border-r border-[#222]"
+            : "bg-white text-gray-900"
+        }
       `}
     >
-      <h2 className="text-2xl font-extrabold mb-8 text-primary">
-        CityFix
-      </h2>
+      <h2 className="text-2xl font-extrabold mb-8 text-primary">CityFix</h2>
 
       <nav
         className={`
@@ -57,6 +86,7 @@ const UserDashboardSidebar = () => {
         </NavLink>
 
         <button
+          onClick={handleLogout}
           className={`
             flex items-center gap-3 px-4 py-3 rounded-lg w-full font-semibold
             transition

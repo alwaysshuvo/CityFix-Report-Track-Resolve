@@ -1,52 +1,120 @@
-import { useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useState, useContext } from "react";
 import axios from "axios";
-import useRole from "../../hooks/useRole";
 import Swal from "sweetalert2";
+import useRole from "../../hooks/useRole";
+import { AuthContext } from "../../provider/AuthProvider";
+import { ThemeContext } from "../../provider/ThemeContext";
 
 const IssueDetails = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { role } = useRole();
+  const { user } = useContext(AuthContext);
+  const { dark } = useContext(ThemeContext);
 
   const [issue, setIssue] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const email = user?.email;
+
   useEffect(() => {
-    fetchIssue();
+    loadIssue();
   }, [id]);
 
-  const fetchIssue = async () => {
+  const loadIssue = async () => {
     try {
       const res = await axios.get(`http://localhost:5000/issues/${id}`);
       setIssue(res.data);
     } catch {
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "Failed to load issue",
-      });
+      Swal.fire("Error", "Failed to load issue", "error");
     } finally {
       setLoading(false);
     }
   };
 
-  const updateStatus = async (status) => {
-    try {
-      await axios.patch(`http://localhost:5000/issues/status/${id}`, {
-        status,
-      });
+  /* ======================
+      UPVOTE (Only Once)
+  ======================= */
+  const handleUpvote = async () => {
+    if (!email) return navigate("/login");
 
-      Swal.fire({
-        icon: "success",
-        title: "Status Updated",
-        timer: 1200,
-        showConfirmButton: false,
-      });
-
-      fetchIssue();
-    } catch {
-      Swal.fire("Error", "Failed to update status", "error");
+    if (issue.reporterEmail === email) {
+      return Swal.fire("Oops!", "You cannot upvote your own issue", "warning");
     }
+
+    const res = await axios.patch(
+      `http://localhost:5000/issues/upvote/${id}`,
+      { email }
+    );
+
+    if (res.data.message === "Already upvoted") {
+      return Swal.fire("Info", "You already upvoted", "info");
+    }
+
+    Swal.fire("Success!", "Upvoted", "success");
+    loadIssue();
+  };
+
+  /* ======================
+      BOOST PRIORITY (Pay 100)
+  ======================= */
+  const handleBoost = async () => {
+    if (!email) return navigate("/login");
+
+    if (issue.priority === "high") {
+      return Swal.fire("Info", "This issue is already boosted", "info");
+    }
+
+    // Fake payment simulation
+    const ok = await Swal.fire({
+      title: "Boost Priority?",
+      text: "Pay 100 taka to boost this issue",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Pay 100 tk",
+    });
+
+    if (!ok.isConfirmed) return;
+
+    await axios.patch(`http://localhost:5000/issues/boost/${id}`, {
+      email,
+      amount: 100,
+    });
+
+    Swal.fire("Done!", "Priority boosted!", "success");
+    loadIssue();
+  };
+
+  /* ======================
+      STATUS UPDATE (Admin/Staff)
+  ======================= */
+  const updateStatus = async (status) => {
+    await axios.patch(`http://localhost:5000/issues/status/${id}`, {
+      status,
+      by: email,
+    });
+
+    Swal.fire("Updated!", "Status updated", "success");
+    loadIssue();
+  };
+
+  /* ======================
+      DELETE ISSUE (Citizen Only)
+  ======================= */
+  const handleDelete = async () => {
+    const ok = await Swal.fire({
+      title: "Delete Issue?",
+      text: "This action cannot be undone",
+      showCancelButton: true,
+      confirmButtonText: "Delete",
+    });
+
+    if (!ok.isConfirmed) return;
+
+    await axios.delete(`http://localhost:5000/issues/${id}`);
+    Swal.fire("Deleted!", "Issue removed", "success");
+    navigate("/dashboard/my-issues");
   };
 
   if (loading) {
@@ -57,12 +125,14 @@ const IssueDetails = () => {
     );
   }
 
-  if (!issue) {
+  if (!issue)
     return <p className="text-center mt-20">Issue not found</p>;
-  }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-base-100 rounded-xl shadow">
+    <div
+      className={`max-w-5xl mx-auto p-6 rounded-xl shadow mt-10
+        ${dark ? "bg-[#111] text-white" : "bg-white text-gray-900"}`}
+    >
       {/* Title */}
       <h1 className="text-3xl font-bold mb-2">{issue.title}</h1>
 
@@ -70,78 +140,114 @@ const IssueDetails = () => {
       {issue.image && (
         <img
           src={issue.image}
-          alt={issue.title}
-          className="rounded-xl w-full h-72 object-cover mb-4"
+          className="rounded-xl w-full h-80 object-cover mb-4"
         />
       )}
 
-      {/* Description */}
-      <p className="text-gray-500 mb-4">{issue.description}</p>
-
-      {/* Meta Badges */}
-      <div className="flex flex-wrap gap-4 mb-6">
-        <span className="badge badge-info capitalize">
-          Status: {issue.status}
+      {/* Badges */}
+      <div className="flex flex-wrap gap-3 mb-6">
+        <span className="badge badge-info">Status: {issue.status}</span>
+        <span className="badge badge-warning">Priority: {issue.priority}</span>
+        <span className="badge badge-outline">{issue.category}</span>
+        {issue.location && <span className="badge">📍 {issue.location}</span>}
+        <span className="badge badge-primary">
+          Upvotes: {issue.upvotes?.length || 0}
         </span>
-
-        <span className="badge badge-warning capitalize">
-          Priority: {issue.priority}
-        </span>
-
-        {issue.location && (
-          <span className="badge badge-outline">📍 {issue.location}</span>
-        )}
-
-        {issue.category && (
-          <span className="badge badge-outline capitalize">
-            Category: {issue.category}
-          </span>
-        )}
       </div>
 
+      {/* Description */}
+      <p className="mb-4">{issue.description}</p>
+
       {/* Reporter */}
-      <div className="mb-6">
-        <h3 className="font-semibold mb-1">Reported By</h3>
+      <div className="mb-4">
+        <h3 className="font-semibold">Reported By</h3>
         <p>{issue.reporterEmail}</p>
       </div>
 
       {/* Assigned Staff */}
       <div className="mb-6">
-        <h3 className="font-semibold mb-1">Assigned Staff</h3>
+        <h3 className="font-semibold">Assigned Staff</h3>
         {issue.assignedStaff ? (
           <p>
             {issue.assignedStaff.name} ({issue.assignedStaff.email})
           </p>
         ) : (
-          <p className="italic text-gray-400">Not assigned yet</p>
+          <p className="italic opacity-60">Not assigned yet</p>
         )}
       </div>
 
-      {/* ADMIN / STAFF ACTION */}
-      {(role === "admin" || role === "staff") && (
-        <div className="flex gap-3 mt-6">
-          <button
-            onClick={() => updateStatus("pending")}
-            className="btn btn-sm btn-outline"
-          >
-            Pending
-          </button>
+      {/* ACTION BUTTONS */}
+      <div className="flex flex-wrap gap-3 my-5">
+        {/* UPVOTE */}
+        <button className="btn btn-primary" onClick={handleUpvote}>
+          👍 Upvote ({issue.upvotes?.length})
+        </button>
 
-          <button
-            onClick={() => updateStatus("in-progress")}
-            className="btn btn-sm btn-info"
-          >
-            In Progress
-          </button>
+        {/* BOOST */}
+        <button className="btn btn-warning" onClick={handleBoost}>
+          🚀 Boost Issue
+        </button>
 
-          <button
-            onClick={() => updateStatus("resolved")}
-            className="btn btn-sm btn-success"
-          >
-            Resolved
-          </button>
-        </div>
-      )}
+        {/* EDIT/DELETE (only if owner & pending) */}
+        {email === issue.reporterEmail && issue.status === "pending" && (
+          <>
+            <button className="btn btn-info">Edit Issue</button>
+            <button className="btn btn-error" onClick={handleDelete}>
+              Delete
+            </button>
+          </>
+        )}
+
+        {/* ADMIN / STAFF STATUS CONTROL */}
+        {(role === "admin" || role === "staff") && (
+          <>
+            <button
+              className="btn btn-outline"
+              onClick={() => updateStatus("pending")}
+            >
+              Pending
+            </button>
+            <button
+              className="btn btn-info"
+              onClick={() => updateStatus("in-progress")}
+            >
+              In Progress
+            </button>
+            <button
+              className="btn btn-success"
+              onClick={() => updateStatus("resolved")}
+            >
+              Resolved
+            </button>
+            <button
+              className="btn btn-neutral"
+              onClick={() => updateStatus("closed")}
+            >
+              Closed
+            </button>
+          </>
+        )}
+      </div>
+
+      {/* ========= TIMELINE ========= */}
+      <h2 className="text-2xl font-semibold mt-10 mb-4">
+        📝 Issue Timeline
+      </h2>
+
+      <div className="border-l-4 pl-5 space-y-4">
+        {issue.timeline
+          ?.slice()
+          .reverse()
+          .map((t, i) => (
+            <div key={i} className="border rounded p-3">
+              <p className="font-semibold capitalize">{t.status}</p>
+              <p>{t.message}</p>
+              <small className="opacity-70">
+                {t.by} — {new Date(t.time).toLocaleString()}
+              </small>
+            </div>
+          ))}
+      </div>
     </div>
   );
 };

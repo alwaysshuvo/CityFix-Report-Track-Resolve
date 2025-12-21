@@ -63,24 +63,28 @@ const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
+  const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+    setUser(currentUser);
 
-      if (currentUser?.email) {
-        const res = await fetch(
-          `http://localhost:5000/users/${currentUser.email}`
-        );
+    if (currentUser?.email) {
+      try {
+        const res = await fetch(`http://localhost:5000/users/${currentUser.email}`);
         const data = await res.json();
-        setRole(data?.role);
-      } else {
-        setRole(null);
+        setRole(data?.role || "citizen");
+      } catch (err) {
+        console.log("User role fetch failed", err);
+        setRole("citizen");
       }
+    } else {
+      setRole(null);
+    }
 
-      setLoading(false);
-    });
+    setLoading(false);
+  });
 
-    return () => unsubscribe();
-  }, []);
+  return () => unsubscribe();
+}, []);
+
 
   const authInfo = {
     user,

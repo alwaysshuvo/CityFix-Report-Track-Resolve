@@ -19,18 +19,21 @@ const UserDashboard = () => {
 
   /* =========================
      FETCH USER ISSUE STATS
-     (SAFE MODE – no crash)
+     CORRECT FIELD → reporterEmail
+     USE BACKEND ROUTE DIRECTLY
   ========================== */
   useEffect(() => {
     if (!user?.email) return;
 
     const fetchStats = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/issues");
-
-        const myIssues = res.data.filter(
-          (issue) => issue.authorEmail === user.email
+        setLoading(true);
+        // fetch ONLY user's issues
+        const res = await axios.get(
+          `http://localhost:5000/issues/user/${user.email}`
         );
+
+        const myIssues = res.data || [];
 
         const pending = myIssues.filter(
           (i) => i.status === "pending"
@@ -60,6 +63,9 @@ const UserDashboard = () => {
     fetchStats();
   }, [user]);
 
+  /* =========================
+     LOADER
+  ========================== */
   if (loading) {
     return (
       <div className="flex justify-center mt-20">

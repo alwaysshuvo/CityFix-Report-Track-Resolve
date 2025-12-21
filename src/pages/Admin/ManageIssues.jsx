@@ -12,33 +12,40 @@ const ManageIssues = () => {
   const [openModal, setOpenModal] = useState(false);
   const [selectedIssue, setSelectedIssue] = useState(null);
 
-  useEffect(() => {
-    fetchIssues();
-  }, []);
-
+  /* =====================
+      Load Issues
+  ======================*/
   const fetchIssues = async () => {
     try {
+      setLoading(true);
       const res = await axios.get("http://localhost:5000/issues");
-      setIssues(res.data);
-    } catch {
+      setIssues(res.data.issues || []); // 🔥 main fix
+    } catch (err) {
       Swal.fire("Error", "Failed to load issues", "error");
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchIssues();
+  }, []);
+
+  /* =====================
+      Assign Staff
+  ======================*/
   const handleAssignStaff = async (staff) => {
     if (!selectedIssue) return;
 
     try {
       await axios.patch(
         `http://localhost:5000/issues/assign/${selectedIssue._id}`,
-        staff // { name, email }
+        staff
       );
 
       Swal.fire({
         icon: "success",
-        title: "Staff Assigned",
+        title: "Staff Assigned Successfully",
         timer: 1500,
         showConfirmButton: false,
       });
@@ -47,7 +54,7 @@ const ManageIssues = () => {
       setSelectedIssue(null);
       fetchIssues();
     } catch {
-      Swal.fire("Error", "Assign failed", "error");
+      Swal.fire("Error", "Failed to assign staff", "error");
     }
   };
 
@@ -60,12 +67,7 @@ const ManageIssues = () => {
   }
 
   return (
-    <div
-      className={`
-        transition-colors duration-300
-        ${dark ? "text-gray-200" : "text-gray-900"}
-      `}
-    >
+    <div className={`transition-all ${dark ? "text-gray-200" : "text-gray-900"}`}>
       <h1
         className={`text-3xl font-bold mb-6 ${
           dark ? "text-purple-300" : "text-indigo-600"
@@ -77,30 +79,18 @@ const ManageIssues = () => {
       <div
         className={`
           overflow-x-auto rounded-xl shadow border
-          transition-colors duration-300
-          ${
-            dark
-              ? "bg-[#111] border-[#2c2c2c]"
-              : "bg-white border-gray-200"
-          }
+          ${dark ? "bg-[#111] border-[#2c2c2c]" : "bg-white border-gray-200"}
         `}
       >
         <table
           className={`table ${
-            dark
-              ? "text-gray-200 [&_tr:hover]:!bg-[#1a1a1a]"
-              : "text-gray-800"
+            dark ? "text-gray-200 [&_tr:hover]:!bg-[#1a1a1a]" : "text-gray-800"
           }`}
         >
           <thead
-            className={`
-              text-sm uppercase
-              ${
-                dark
-                  ? "bg-[#1b1b1b] text-gray-300"
-                  : "bg-gray-100 text-gray-600"
-              }
-            `}
+            className={`text-sm uppercase ${
+              dark ? "bg-[#1b1b1b] text-gray-300" : "bg-gray-100 text-gray-600"
+            }`}
           >
             <tr>
               <th>Title</th>
@@ -113,16 +103,17 @@ const ManageIssues = () => {
 
           <tbody>
             {issues.map((issue) => (
-              <tr
-                key={issue._id}
-                className={`${dark ? "hover:bg-[#1a1a1a]" : ""}`}
-              >
+              <tr key={issue._id}>
                 <td className="font-medium">{issue.title}</td>
 
                 <td>
                   <span
-                    className={`badge badge-outline ${
-                      dark ? "border-gray-500 text-gray-300" : ""
+                    className={`badge capitalize ${
+                      issue.status === "pending"
+                        ? "badge-warning"
+                        : issue.status === "in-progress"
+                        ? "badge-info"
+                        : "badge-success"
                     }`}
                   >
                     {issue.status}
@@ -131,10 +122,8 @@ const ManageIssues = () => {
 
                 <td>
                   <span
-                    className={`badge ${
-                      issue.priority === "High"
-                        ? "badge-error"
-                        : "badge-success"
+                    className={`badge capitalize ${
+                      issue.priority === "high" ? "badge-error" : "badge-outline"
                     }`}
                   >
                     {issue.priority}
@@ -144,25 +133,13 @@ const ManageIssues = () => {
                 <td>
                   {issue.assignedStaff ? (
                     <div>
-                      <p className="font-medium">
-                        {issue.assignedStaff.name}
-                      </p>
-                      <p
-                        className={`text-xs ${
-                          dark ? "text-gray-400" : "text-gray-500"
-                        }`}
-                      >
+                      <p className="font-medium">{issue.assignedStaff.name}</p>
+                      <p className="text-xs opacity-60">
                         {issue.assignedStaff.email}
                       </p>
                     </div>
                   ) : (
-                    <span
-                      className={`italic ${
-                        dark ? "text-gray-500" : "text-gray-400"
-                      }`}
-                    >
-                      Not Assigned
-                    </span>
+                    <span className="italic opacity-60">Not Assigned</span>
                   )}
                 </td>
 
@@ -172,17 +149,14 @@ const ManageIssues = () => {
                       setSelectedIssue(issue);
                       setOpenModal(true);
                     }}
-                    className={`
-                      btn btn-xs 
-                      ${
-                        issue.assignedStaff
-                          ? "btn-disabled"
-                          : dark
-                          ? "bg-purple-600 hover:bg-purple-700 text-white"
-                          : "btn-primary"
-                      }
-                    `}
                     disabled={!!issue.assignedStaff}
+                    className={`btn btn-xs ${
+                      issue.assignedStaff
+                        ? "btn-disabled"
+                        : dark
+                        ? "bg-purple-600 text-white hover:bg-purple-700"
+                        : "btn-primary"
+                    }`}
                   >
                     Assign
                   </button>
@@ -192,10 +166,7 @@ const ManageIssues = () => {
 
             {issues.length === 0 && (
               <tr>
-                <td
-                  colSpan="5"
-                  className="text-center py-6 text-gray-500"
-                >
+                <td colSpan="5" className="py-6 text-center opacity-70">
                   No issues found
                 </td>
               </tr>
