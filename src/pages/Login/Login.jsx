@@ -22,40 +22,25 @@ const Login = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // ⏳ Handle global redirect when Firebase auth updates
+  /** Redirect based on role */
   useEffect(() => {
     if (auth.currentUser && role && !roleLoading) {
-      setError("");
-      if (role === "admin") {
-        navigate("/admin", { replace: true });
-      } else if (role === "staff") {
-        navigate("/staff", { replace: true });
-      } else {
-        navigate("/dashboard", { replace: true });
-      }
+      if (role === "admin") navigate("/admin", { replace: true });
+      else if (role === "staff") navigate("/staff", { replace: true });
+      else navigate("/dashboard", { replace: true });
     }
   }, [role, roleLoading, navigate]);
 
-  const getJwtToken = async (email) => {
-    const res = await axios.post(
-      `${import.meta.env.VITE_API_BASE}/jwt`,
-      { email }
-    );
-    localStorage.setItem("access-token", res.data.token);
-  };
-
+  /** Email Login */
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
     try {
-      const result = await signInWithEmailAndPassword(auth, email, password);
-
-      await getJwtToken(result.user.email);
-
+      await signInWithEmailAndPassword(auth, email, password);
       setError("");
-      navigate("/dashboard");
+      // redirect handled by useEffect
     } catch (err) {
       setError("Invalid email or password");
     } finally {
@@ -63,6 +48,7 @@ const Login = () => {
     }
   };
 
+  /** Google Login */
   const handleGoogleLogin = async () => {
     setError("");
     setLoading(true);
@@ -71,27 +57,22 @@ const Login = () => {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
 
-      await axios.post(
-        `${import.meta.env.VITE_API_BASE}/users`,
-        {
-          name: result.user.displayName,
-          email: result.user.email,
-          photo: result.user.photoURL,
-        }
-      );
-
-      await getJwtToken(result.user.email);
+      await axios.post(`${import.meta.env.VITE_API_BASE}/users`, {
+        name: result.user.displayName,
+        email: result.user.email,
+        photo: result.user.photoURL,
+      });
 
       setError("");
-      navigate("/dashboard");
+      // redirect handled by role effect
     } catch (err) {
+      console.log(err);
       setError("Google login failed, try again");
     } finally {
       setLoading(false);
     }
   };
 
-  // 🔄 Still loading role
   if (roleLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -102,28 +83,19 @@ const Login = () => {
 
   return (
     <div
-      className={`
-      min-h-screen flex items-center justify-center px-4
-      ${
+      className={`min-h-screen flex items-center justify-center px-4 ${
         dark
           ? "bg-[#0B0B0B]"
           : "bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100"
-      }
-      transition-all duration-300
-    `}
+      } transition-all duration-300`}
     >
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className={`
-          w-full max-w-md rounded-2xl p-8 shadow-2xl border
-          ${
-            dark
-              ? "bg-[#141414] border-[#2A2A2A]"
-              : "bg-white border-gray-200"
-          }
-        `}
+        className={`w-full max-w-md rounded-2xl p-8 shadow-2xl border ${
+          dark ? "bg-[#141414] border-[#2A2A2A]" : "bg-white border-gray-200"
+        }`}
       >
         <div className="text-center mb-8">
           <h1 className={`text-3xl font-bold ${dark ? "text-white" : "text-gray-800"}`}>
@@ -134,7 +106,6 @@ const Login = () => {
           </p>
         </div>
 
-        {/* LOGIN FORM */}
         <form onSubmit={handleLogin} className="space-y-5">
           <div>
             <label className={`text-sm font-medium ${dark ? "text-gray-300" : "text-gray-700"}`}>
@@ -144,20 +115,16 @@ const Login = () => {
               type="email"
               required
               placeholder="you@example.com"
-              className={`
-                mt-1 w-full border rounded-lg px-3 py-2
-                ${
-                  dark
-                    ? "bg-[#1A1A1A] border-[#444] text-white placeholder-gray-400"
-                    : "bg-white border-gray-300 text-black placeholder-gray-500"
-                }
-              `}
+              className={`mt-1 w-full border rounded-lg px-3 py-2 ${
+                dark
+                  ? "bg-[#1A1A1A] border-[#444] text-white placeholder-gray-400"
+                  : "bg-white border-gray-300 text-black placeholder-gray-500"
+              }`}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
 
-          {/* PASSWORD */}
           <div>
             <label className={`text-sm font-medium ${dark ? "text-gray-300" : "text-gray-700"}`}>
               Password
@@ -167,14 +134,11 @@ const Login = () => {
                 type={showPassword ? "text" : "password"}
                 required
                 placeholder="••••••••"
-                className={`
-                  mt-1 w-full border rounded-lg px-3 py-2 pr-14
-                  ${
-                    dark
-                      ? "bg-[#1A1A1A] border-[#444] text-white placeholder-gray-400"
-                      : "bg-white border-gray-300 text-black placeholder-gray-500"
-                  }
-                `}
+                className={`mt-1 w-full border rounded-lg px-3 py-2 pr-14 ${
+                  dark
+                    ? "bg-[#1A1A1A] border-[#444] text-white placeholder-gray-400"
+                    : "bg-white border-gray-300 text-black placeholder-gray-500"
+                }`}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
@@ -182,53 +146,39 @@ const Login = () => {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className={`
-                  absolute right-3 top-1/2 -translate-y-1/2 text-xs
-                  ${dark ? "text-gray-400" : "text-gray-600"}
-                `}
+                className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs ${
+                  dark ? "text-gray-400" : "text-gray-600"
+                }`}
               >
                 {showPassword ? "Hide" : "Show"}
               </button>
             </div>
           </div>
 
-          {error && (
-            <p className="text-red-500 text-sm font-medium">
-              {error}
-            </p>
-          )}
+          {error && <p className="text-red-500 text-sm font-medium">{error}</p>}
 
           <button
             disabled={loading}
-            className="
-              w-full py-3 rounded-xl text-white font-semibold
-              bg-indigo-600 hover:bg-indigo-700 transition
-            "
+            className="w-full py-3 rounded-xl text-white font-semibold bg-indigo-600 hover:bg-indigo-700 transition"
           >
             {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 
-        {/* DIVIDER */}
         <div className="flex items-center gap-3 my-6">
           <div className={`flex-1 h-px ${dark ? "bg-[#333]" : "bg-gray-200"}`} />
           <span className="text-xs text-gray-400">OR</span>
           <div className={`flex-1 h-px ${dark ? "bg-[#333]" : "bg-gray-200"}`} />
         </div>
 
-        {/* GOOGLE LOGIN */}
         <button
           onClick={handleGoogleLogin}
           disabled={loading}
-          className={`
-            w-full py-3 border rounded-xl flex items-center justify-center gap-2
-            ${
-              dark
-                ? "text-white border-[#444] hover:bg-[#222]"
-                : "border-gray-300 hover:bg-gray-100 text-black"
-            }
-            transition
-          `}
+          className={`w-full py-3 border rounded-xl flex items-center justify-center gap-2 ${
+            dark
+              ? "text-white border-[#444] hover:bg-[#222]"
+              : "border-gray-300 hover:bg-gray-100 text-black"
+          } transition`}
         >
           <img
             src="https://www.svgrepo.com/show/475656/google-color.svg"
@@ -237,7 +187,6 @@ const Login = () => {
           Continue with Google
         </button>
 
-        {/* REGISTER LINK */}
         <p className={`text-center text-sm mt-6 ${dark ? "text-gray-400" : "text-gray-600"}`}>
           No account?
           <Link className="text-indigo-600 font-semibold ml-1" to="/register">

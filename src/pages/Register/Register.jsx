@@ -4,7 +4,7 @@ import { useContext, useState } from "react";
 import Swal from "sweetalert2";
 import { AuthContext } from "../../provider/AuthProvider";
 import { FiEye, FiEyeOff, FiUploadCloud } from "react-icons/fi";
-import { updateProfile, signOut } from "firebase/auth";
+import { updateProfile } from "firebase/auth";
 import { auth } from "../../firebase/firebase.config";
 import { ThemeContext } from "../../provider/ThemeContext";
 
@@ -25,21 +25,20 @@ const Register = () => {
     const img = e.target.files[0];
     if (!img) return;
     setUploading(true);
-    setUploadProgress(10);
+    setUploadProgress(20);
 
     const formData = new FormData();
     formData.append("image", img);
 
     try {
       const url = `https://api.imgbb.com/1/upload?key=${imgbbKey}`;
-      setUploadProgress(30);
       const res = await fetch(url, { method: "POST", body: formData });
-      setUploadProgress(60);
+      setUploadProgress(70);
       const data = await res.json();
-      setUploadProgress(100);
 
       if (data.success) {
         setImgURL(data.data.display_url);
+        setUploadProgress(100);
         Swal.fire("Uploaded!", "Profile photo uploaded!", "success");
       }
     } catch {
@@ -68,14 +67,13 @@ const Register = () => {
       return Swal.fire("Weak!", "Password must be 6+ chars", "error");
     if (password !== confirmPassword)
       return Swal.fire("Mismatch!", "Passwords don't match", "error");
-    if (!imgURL) {
+    if (!imgURL)
       return Swal.fire("Required!", "Upload a profile image first", "warning");
-    }
 
     try {
-      const userCredential = await createUser(email, password);
+      const result = await createUser(email, password);
 
-      await updateProfile(userCredential.user, {
+      await updateProfile(result.user, {
         displayName: name,
         photoURL: imgURL,
       });
@@ -83,16 +81,16 @@ const Register = () => {
       Swal.fire({
         icon: "success",
         title: "Account Created!",
-        text: `${name}, now login to continue`,
+        text: "Now login to continue",
         timer: 1500,
         showConfirmButton: false,
       });
 
-      await signOut(auth);
+      await auth.signOut(); // <-- logout user
 
       navigate("/login");
     } catch (err) {
-      Swal.fire("Error", err.message, "error");
+      Swal.fire("Error", "Registration failed. Try again.", "error");
     }
   };
 
@@ -107,60 +105,46 @@ const Register = () => {
         showConfirmButton: false,
       });
 
-      navigate("/dashboard");
-    } catch (err) {
-      Swal.fire("Error", err.message, "error");
+      navigate("/dashboard", { replace: true });
+    } catch {
+      Swal.fire("Error", "Google signup failed", "error");
     }
   };
 
   return (
     <div
-      className={`
-      min-h-screen flex items-center justify-center px-4 pt-32 pb-20
-      ${
+      className={`min-h-screen flex items-center justify-center px-4 pt-32 pb-20 ${
         dark
           ? "bg-[#0B0B0B]"
           : "bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100"
-      }
-      transition-all duration-300
-    `}
+      } transition-all duration-300`}
     >
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className={`
-          w-full max-w-lg rounded-3xl shadow-2xl p-10 mb-10 border
-          ${
-            dark
-              ? "bg-[#141414] border-[#2A2A2A] text-white"
-              : "bg-white border-gray-200 text-black"
-          }
-        `}
+        className={`w-full max-w-lg rounded-3xl shadow-2xl p-10 mb-10 border ${
+          dark
+            ? "bg-[#141414] border-[#2A2A2A] text-white"
+            : "bg-white border-gray-200 text-black"
+        }`}
       >
         <div className="text-center mb-8">
           <h1 className="text-3xl font-extrabold">
             Create an <span className="text-indigo-500">Account</span>
           </h1>
-          <p className="text-sm opacity-70 mt-2">Join CityFix & improve your city</p>
+          <p className="text-sm opacity-70 mt-2">
+            Join CityFix & improve your city
+          </p>
         </div>
 
-        {/* Avatar Upload */}
         <div className="text-center mb-8">
           <div className="relative w-28 h-28 mx-auto">
             <img
-              src={
-                imgURL ||
-                "https://i.ibb.co/4pDNDk1/avatar.png"
-              }
+              src={imgURL || "https://i.ibb.co/4pDNDk1/avatar.png"}
               className="w-28 h-28 rounded-full border object-cover shadow-md"
             />
-
-            <label className="
-            absolute -bottom-2 left-1/2 -translate-x-1/2
-            cursor-pointer flex items-center gap-1
-            bg-indigo-600 hover:bg-indigo-700 text-white 
-            px-3 py-1 rounded-lg text-xs shadow">
+            <label className="absolute -bottom-2 left-1/2 -translate-x-1/2 cursor-pointer bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-3 py-1 rounded-lg shadow flex gap-1 items-center">
               <FiUploadCloud /> Upload
               <input
                 type="file"
@@ -180,7 +164,6 @@ const Register = () => {
           )}
         </div>
 
-        {/* Form Start */}
         <form onSubmit={handleRegister} className="space-y-6">
           <div>
             <label className="font-medium mb-1 block">Full Name</label>
@@ -188,14 +171,11 @@ const Register = () => {
               type="text"
               name="name"
               required
-              className={`
-                w-full px-3 py-2 rounded-lg border
-                ${
-                  dark
-                    ? "bg-[#1A1A1A] border-[#444] text-white"
-                    : "bg-white border-gray-300"
-                }
-              `}
+              className={`w-full px-3 py-2 rounded-lg border ${
+                dark
+                  ? "bg-[#1A1A1A] border-[#444] text-white"
+                  : "bg-white border-gray-300"
+              }`}
             />
           </div>
 
@@ -205,14 +185,11 @@ const Register = () => {
               type="email"
               name="email"
               required
-              className={`
-                w-full px-3 py-2 rounded-lg border
-                ${
-                  dark
-                    ? "bg-[#1A1A1A] border-[#444] text-white"
-                    : "bg-white border-gray-300"
-                }
-              `}
+              className={`w-full px-3 py-2 rounded-lg border ${
+                dark
+                  ? "bg-[#1A1A1A] border-[#444] text-white"
+                  : "bg-white border-gray-300"
+              }`}
             />
           </div>
 
@@ -223,14 +200,11 @@ const Register = () => {
                 type={showPassword ? "text" : "password"}
                 name="password"
                 required
-                className={`
-                  w-full px-3 py-2 rounded-lg border pr-12
-                  ${
-                    dark
-                      ? "bg-[#1A1A1A] border-[#444] text-white"
-                      : "bg-white border-gray-300"
-                  }
-                `}
+                className={`w-full px-3 py-2 rounded-lg border pr-12 ${
+                  dark
+                    ? "bg-[#1A1A1A] border-[#444] text-white"
+                    : "bg-white border-gray-300"
+                }`}
               />
               <span
                 onClick={() => setShowPassword(!showPassword)}
@@ -248,19 +222,14 @@ const Register = () => {
                 type={showConfirmPassword ? "text" : "password"}
                 name="confirmPassword"
                 required
-                className={`
-                  w-full px-3 py-2 rounded-lg border pr-12
-                  ${
-                    dark
-                      ? "bg-[#1A1A1A] border-[#444] text-white"
-                      : "bg-white border-gray-300"
-                  }
-                `}
+                className={`w-full px-3 py-2 rounded-lg border pr-12 ${
+                  dark
+                    ? "bg-[#1A1A1A] border-[#444] text-white"
+                    : "bg-white border-gray-300"
+                }`}
               />
               <span
-                onClick={() =>
-                  setShowConfirmPassword(!showConfirmPassword)
-                }
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-xl opacity-60"
               >
                 {showConfirmPassword ? <FiEyeOff /> : <FiEye />}
@@ -269,10 +238,16 @@ const Register = () => {
           </div>
 
           <div className="flex items-center gap-3 text-sm">
-            <input type="checkbox" name="terms" className="checkbox checkbox-primary" />
+            <input
+              type="checkbox"
+              name="terms"
+              className="checkbox checkbox-primary"
+            />
             <span className="opacity-75">
               I agree to the{" "}
-              <Link className="text-indigo-500 underline">Terms & Conditions</Link>
+              <Link className="text-indigo-500 underline">
+                Terms & Conditions
+              </Link>
             </span>
           </div>
 
@@ -282,7 +257,7 @@ const Register = () => {
             disabled={uploading}
             className="w-full py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition"
           >
-            {uploading ? "Wait..." : "Register"}
+            Register
           </motion.button>
         </form>
 
@@ -303,15 +278,11 @@ const Register = () => {
           onClick={handleGoogleSignup}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          className={`
-            w-full py-3 rounded-xl border flex items-center justify-center gap-2
-            ${
-              dark
-                ? "border-[#444] text-white hover:bg-[#222]"
-                : "border-gray-300 hover:bg-gray-100"
-            }
-            transition
-          `}
+          className={`w-full py-3 rounded-xl border flex items-center justify-center gap-2 ${
+            dark
+              ? "border-[#444] text-white hover:bg-[#222]"
+              : "border-gray-300 hover:bg-gray-100"
+          } transition`}
         >
           <img
             src="https://www.svgrepo.com/show/475656/google-color.svg"
