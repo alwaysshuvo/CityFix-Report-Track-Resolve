@@ -1,7 +1,8 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useEffect, useState, useContext } from "react";
+import { useContext } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import useRole from "../../hooks/useRole";
 import { AuthContext } from "../../provider/AuthProvider";
 import { ThemeContext } from "../../provider/ThemeContext";
@@ -10,106 +11,92 @@ const IssueDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { role } = useRole();
+  const queryClient = useQueryClient();
   const { user } = useContext(AuthContext);
   const { dark } = useContext(ThemeContext);
-
-  const [issue, setIssue] = useState(null);
-  const [loading, setLoading] = useState(true);
-
   const email = user?.email;
 
-  useEffect(() => {
-    loadIssue();
-  }, [id]);
-
-  const loadIssue = async () => {
-    try {
+  /** ==========================
+   * LOAD ISSUE (TanStack Query)
+   =========================== */
+  const {
+    data: issue,
+    isLoading,
+    refetch,
+  } = useQuery({
+    queryKey: ["issue", id],
+    queryFn: async () => {
       const res = await axios.get(`${import.meta.env.VITE_API_BASE}/issues/${id}`);
-      setIssue(res.data);
-    } catch {
-      Swal.fire("Error", "Failed to load issue", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
+      return res.data;
+    },
+  });
 
-  /* ======================
-      UPVOTE (Only Once)
-  ======================= */
-  const handleUpvote = async () => {
+  /** ==========================
+   * UPVOTE
+   =========================== */
+  const upvoteMutation = useMutation({
+    mutationFn: async () => {
+      return axios.patch(`${import.meta.env.VITE_API_BASE}/issues/upvote/${id}`, {
+        email,
+      });
+    },
+    onSuccess: () => {
+      Swal.fire("Success", "Upvoted!", "success");
+      queryClient.invalidateQueries(["issue", id]);
+    },
+    onError: (err) => {
+      Swal.fire("Oops!", err.response?.data?.error || "Cannot upvote", "error");
+    },
+  });
+
+  const handleUpvote = () => {
     if (!email) return navigate("/login");
-
-    if (issue.reporterEmail === email) {
-      return Swal.fire("Oops!", "You cannot upvote your own issue", "warning");
-    }
-
-    const res = await axios.patch(
-      `${import.meta.env.VITE_API_BASE}/issues/upvote/${id}`,
-      { email }
-    );
-
-    if (res.data.message === "Already upvoted") {
-      return Swal.fire("Info", "You already upvoted", "info");
-    }
-
-    Swal.fire("Success!", "Upvoted", "success");
-    loadIssue();
+    upvoteMutation.mutate();
   };
 
-  /* ======================
-      BOOST PRIORITY (Pay 100)
-  ======================= */
+  /** ==========================
+   * BOOST (Stripe Checkout)
+   =========================== */
   const handleBoost = async () => {
     if (!email) return navigate("/login");
+    if (issue.priority === "high")
+      return Swal.fire("Info", "Already boosted", "info");
 
-    if (issue.priority === "high") {
-      return Swal.fire("Info", "This issue is already boosted", "info");
-    }
-
-    // Fake payment simulation
-    const ok = await Swal.fire({
+    const confirm = await Swal.fire({
       title: "Boost Priority?",
-      text: "Pay 100 taka to boost this issue",
+      text: "Pay 100 BDT to highlight this issue",
       icon: "question",
       showCancelButton: true,
-      confirmButtonText: "Pay 100 tk",
+      confirmButtonText: "Proceed to Pay",
     });
 
-    if (!ok.isConfirmed) return;
+    if (!confirm.isConfirmed) return;
 
-    await axios.patch(`${import.meta.env.VITE_API_BASE}/issues/boost/${id}`, {
-      email,
-      amount: 100,
-    });
+    try {
+      const res = await axios.post(`${import.meta.env.VITE_API_BASE}/issues/boost`, {
+        email,
+        issueId: id,
+      });
 
-    Swal.fire("Done!", "Priority boosted!", "success");
-    loadIssue();
+      if (res.data.url) {
+        window.location.href = res.data.url;
+      }
+    } catch (err) {
+      Swal.fire("Payment Failed", "Try again later", "error");
+    }
   };
 
-  /* ======================
-      STATUS UPDATE (Admin/Staff)
-  ======================= */
-  const updateStatus = async (status) => {
-    await axios.patch(`${import.meta.env.VITE_API_BASE}/issues/status/${id}`, {
-      status,
-      by: email,
-    });
-
-    Swal.fire("Updated!", "Status updated", "success");
-    loadIssue();
-  };
-
-  /* ======================
-      DELETE ISSUE (Citizen Only)
-  ======================= */
+  /** ==========================
+   * DELETE (only reporter+pending)
+   =========================== */
   const handleDelete = async () => {
     const ok = await Swal.fire({
       title: "Delete Issue?",
-      text: "This action cannot be undone",
+      text: "This cannot be undone",
       showCancelButton: true,
       confirmButtonText: "Delete",
+      icon: "warning",
     });
-
     if (!ok.isConfirmed) return;
 
     await axios.delete(`${import.meta.env.VITE_API_BASE}/issues/${id}`);
@@ -117,26 +104,63 @@ const IssueDetails = () => {
     navigate("/dashboard/my-issues");
   };
 
-  if (loading) {
+  /** ==========================
+   * ADMIN REJECT ISSUE
+   =========================== */
+  const handleReject = async () => {
+    const ok = await Swal.fire({
+      title: "Reject?",
+      text: "Mark as rejected?",
+      showCancelButton: true,
+      confirmButtonText: "Reject",
+      icon: "warning",
+    });
+    if (!ok.isConfirmed) return;
+
+    await axios.patch(`${import.meta.env.VITE_API_BASE}/issues/reject/${id}`);
+    Swal.fire("Done", "Issue rejected", "success");
+    refetch();
+  };
+
+  /** ==========================
+   * STAFF / ADMIN STATUS WORKFLOW
+   =========================== */
+  const statusMutation = useMutation({
+    mutationFn: async (nextStatus) => {
+      return axios.patch(
+        `${import.meta.env.VITE_API_BASE}/issues/status/${id}`,
+        { status: nextStatus, by: email }
+      );
+    },
+    onSuccess: () => {
+      Swal.fire("Updated!", "Status changed", "success");
+      queryClient.invalidateQueries(["issue", id]);
+    },
+  });
+
+  const allowedStatus = ["pending", "in-progress", "working", "resolved", "closed"];
+
+  /** UI Loading States */
+  if (isLoading) {
     return (
       <div className="flex justify-center mt-20">
-        <span className="loading loading-spinner loading-lg"></span>
+        <span className="loading loading-lg" />
       </div>
     );
   }
 
-  if (!issue)
-    return <p className="text-center mt-20">Issue not found</p>;
+  if (!issue) return <p className="text-center mt-20">Not Found</p>;
 
   return (
     <div
-      className={`max-w-5xl mx-auto p-6 rounded-xl shadow mt-10
-        ${dark ? "bg-[#111] text-white" : "bg-white text-gray-900"}`}
+      className={`max-w-5xl mx-auto p-6 rounded-xl shadow mt-10 ${
+        dark ? "bg-[#111] text-white" : "bg-white text-gray-900"
+      }`}
     >
-      {/* Title */}
-      <h1 className="text-3xl font-bold mb-2">{issue.title}</h1>
+      {/* TITLE */}
+      <h1 className="text-3xl font-bold mb-3">{issue.title}</h1>
 
-      {/* Image */}
+      {/* IMAGE */}
       {issue.image && (
         <img
           src={issue.image}
@@ -144,106 +168,92 @@ const IssueDetails = () => {
         />
       )}
 
-      {/* Badges */}
-      <div className="flex flex-wrap gap-3 mb-6">
+      {/* BADGES */}
+      <div className="flex flex-wrap gap-3 mb-5">
         <span className="badge badge-info">Status: {issue.status}</span>
         <span className="badge badge-warning">Priority: {issue.priority}</span>
-        <span className="badge badge-outline">{issue.category}</span>
-        {issue.location && <span className="badge">📍 {issue.location}</span>}
+        <span className="badge badge-outline capitalize">{issue.category}</span>
+        <span className="badge">📍 {issue.location}</span>
         <span className="badge badge-primary">
           Upvotes: {issue.upvotes?.length || 0}
         </span>
       </div>
 
-      {/* Description */}
+      {/* DESCRIPTION */}
       <p className="mb-4">{issue.description}</p>
 
-      {/* Reporter */}
-      <div className="mb-4">
-        <h3 className="font-semibold">Reported By</h3>
-        <p>{issue.reporterEmail}</p>
-      </div>
+      {/* REPORTER INFO */}
+      <h3 className="font-semibold mt-2">Reported By</h3>
+      <p className="opacity-75">{issue.reporterEmail}</p>
 
-      {/* Assigned Staff */}
-      <div className="mb-6">
-        <h3 className="font-semibold">Assigned Staff</h3>
-        {issue.assignedStaff ? (
-          <p>
-            {issue.assignedStaff.name} ({issue.assignedStaff.email})
-          </p>
-        ) : (
-          <p className="italic opacity-60">Not assigned yet</p>
-        )}
-      </div>
+      {/* ASSIGNED STAFF */}
+      <h3 className="font-semibold mt-4">Assigned Staff</h3>
+      {issue.assignedStaff ? (
+        <p>
+          {issue.assignedStaff.name} ({issue.assignedStaff.email})
+        </p>
+      ) : (
+        <p className="italic opacity-60">Not Assigned</p>
+      )}
 
       {/* ACTION BUTTONS */}
-      <div className="flex flex-wrap gap-3 my-5">
+      <div className="flex flex-wrap gap-2 mt-6">
+
         {/* UPVOTE */}
-        <button className="btn btn-primary" onClick={handleUpvote}>
+        <button className="btn btn-primary btn-sm" onClick={handleUpvote}>
           👍 Upvote ({issue.upvotes?.length})
         </button>
 
         {/* BOOST */}
-        <button className="btn btn-warning" onClick={handleBoost}>
-          🚀 Boost Issue
+        <button className="btn btn-warning btn-sm" onClick={handleBoost}>
+          🚀 Boost (100 BDT)
         </button>
 
-        {/* EDIT/DELETE (only if owner & pending) */}
+        {/* DELETE (Citizen owner only & pending) */}
         {email === issue.reporterEmail && issue.status === "pending" && (
-          <>
-            <button className="btn btn-info">Edit Issue</button>
-            <button className="btn btn-error" onClick={handleDelete}>
-              Delete
-            </button>
-          </>
+          <button className="btn btn-error btn-sm" onClick={handleDelete}>
+            Delete
+          </button>
         )}
 
-        {/* ADMIN / STAFF STATUS CONTROL */}
-        {(role === "admin" || role === "staff") && (
-          <>
-            <button
-              className="btn btn-outline"
-              onClick={() => updateStatus("pending")}
-            >
-              Pending
-            </button>
-            <button
-              className="btn btn-info"
-              onClick={() => updateStatus("in-progress")}
-            >
-              In Progress
-            </button>
-            <button
-              className="btn btn-success"
-              onClick={() => updateStatus("resolved")}
-            >
-              Resolved
-            </button>
-            <button
-              className="btn btn-neutral"
-              onClick={() => updateStatus("closed")}
-            >
-              Closed
-            </button>
-          </>
+        {/* ADMIN Reject if pending */}
+        {role === "admin" && issue.status === "pending" && (
+          <button className="btn btn-error btn-sm" onClick={handleReject}>
+            Reject
+          </button>
+        )}
+
+        {/* STAFF / ADMIN STATUS CONTROLS */}
+        {(role === "staff" || role === "admin") && (
+          <select
+            className="select select-bordered select-sm"
+            onChange={(e) => statusMutation.mutate(e.target.value)}
+            defaultValue=""
+          >
+            <option value="" disabled>
+              Change Status
+            </option>
+            {allowedStatus.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
         )}
       </div>
 
-      {/* ========= TIMELINE ========= */}
-      <h2 className="text-2xl font-semibold mt-10 mb-4">
-        📝 Issue Timeline
-      </h2>
-
-      <div className="border-l-4 pl-5 space-y-4">
+      {/* TIMELINE */}
+      <h2 className="text-2xl font-semibold mt-10 mb-3">📌 Issue Timeline</h2>
+      <div className="border-l-4 pl-4 space-y-4">
         {issue.timeline
           ?.slice()
           .reverse()
-          .map((t, i) => (
-            <div key={i} className="border rounded p-3">
-              <p className="font-semibold capitalize">{t.status}</p>
-              <p>{t.message}</p>
-              <small className="opacity-70">
-                {t.by} — {new Date(t.time).toLocaleString()}
+          .map((log, idx) => (
+            <div key={idx} className="border rounded p-3">
+              <p className="capitalize font-semibold">{log.status}</p>
+              <p>{log.message}</p>
+              <small className="opacity-50">
+                {log.by} — {new Date(log.time).toLocaleString()}
               </small>
             </div>
           ))}

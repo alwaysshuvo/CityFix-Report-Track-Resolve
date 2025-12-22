@@ -18,17 +18,21 @@ const AssignedIssues = () => {
   }, [user]);
 
   const fetchIssues = async () => {
-    try {
-      const res = await axios.get(
-        `${import.meta.env.VITE_API_BASE}/issues/staff/${user.email}`
-      );
-      setIssues(res.data);
-    } catch {
-      Swal.fire("Error", "Failed to load assigned issues", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    const res = await axios.get(
+      `${import.meta.env.VITE_API_BASE}/issues/staff/${user.email}`
+    );
+
+    const list = Array.isArray(res.data?.issues) ? res.data.issues : [];
+    setIssues(list);
+  } catch {
+    Swal.fire("Error", "Failed to load assigned issues", "error");
+    setIssues([]);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const updateStatus = async (id, newStatus) => {
     try {

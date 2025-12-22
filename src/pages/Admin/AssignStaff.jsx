@@ -6,53 +6,75 @@ import { ThemeContext } from "../../provider/ThemeContext";
 const AssignStaff = () => {
   const { dark } = useContext(ThemeContext);
 
+  const [issues, setIssues] = useState([]);
   const [staffs, setStaffs] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // load pending + in-progress issues and staff
   useEffect(() => {
-    const loadData = async () => {
+    const load = async () => {
       try {
-        const res = await axios.get(`${import.meta.env.VITE_API_BASE}/staff`);
-        const list = Array.isArray(res.data)
-          ? res.data
-          : res.data?.staff || [];
-        setStaffs(list);
+        const resIssues = await axios.get(`${import.meta.env.VITE_API_BASE}/issues`);
+        const list = resIssues.data?.issues || [];
+        const filtered = list.filter(
+          (i) => i.status === "pending" || i.status === "in-progress"
+        );
+        setIssues(filtered);
+
+        const resStaff = await axios.get(`${import.meta.env.VITE_API_BASE}/staff`);
+        setStaffs(resStaff.data);
       } catch (err) {
-        console.log(err);
-        Swal.fire("Error", "Failed to load staff list", "error");
+        Swal.fire("Error", "Failed to load data", "error");
       } finally {
         setLoading(false);
       }
     };
-
-    loadData();
+    load();
   }, []);
 
-  const toggleStatus = async (staff) => {
-    const newStatus = staff.status === "active" ? "blocked" : "active";
+  const assign = async (issueId, staff) => {
+    if (!staff) {
+      return Swal.fire("Select staff first!", "", "info");
+    }
 
     const confirm = await Swal.fire({
-      title: "Are you sure?",
-      text: `This staff will be ${newStatus}`,
-      icon: "warning",
+      title: "Assign Staff?",
+      text: `Assign ${staff.name} to this issue?`,
+      icon: "question",
       showCancelButton: true,
       confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Assign",
+      background: dark ? "#1a1a1a" : "#fff",
+      color: dark ? "#fff" : "#000",
     });
 
     if (!confirm.isConfirmed) return;
 
-    await axios.patch(
-      `${import.meta.env.VITE_API_BASE}/staff/status/${staff._id}`,
-      { status: newStatus }
-    );
+    try {
+      await axios.patch(
+        `${import.meta.env.VITE_API_BASE}/issues/assign/${issueId}`,
+        {
+          name: staff.name,
+          email: staff.email,
+          staffId: staff._id,
+        }
+      );
 
-    setStaffs((prev) =>
-      prev.map((s) =>
-        s._id === staff._id ? { ...s, status: newStatus } : s
-      )
-    );
+      Swal.fire({
+        icon: "success",
+        title: "Assigned!",
+        timer: 1200,
+        showConfirmButton: false,
+        background: dark ? "#1a1a1a" : "#fff",
+        color: dark ? "#fff" : "#000",
+      });
 
-    Swal.fire("Updated!", "", "success");
+      // Remove from UI so admin sees progress
+      setIssues((prev) => prev.filter((i) => i._id !== issueId));
+    } catch {
+      Swal.fire("Error", "Assignment failed", "error");
+    }
   };
 
   if (loading) {
@@ -65,74 +87,110 @@ const AssignStaff = () => {
 
   return (
     <div
-      className={`p-4 md:p-8 transition-all ${
-        dark ? "bg-[#0b0b0b] text-white" : "bg-white"
+      className={`p-4 md:p-8 min-h-screen ${
+        dark ? "bg-[#0b0b0b] text-white" : "bg-white text-gray-900"
       }`}
     >
       <h1
-        className={`text-3xl font-bold mb-6 ${
-          dark ? "text-blue-400" : "text-blue-700"
+        className={`text-3xl font-bold mb-8 ${
+          dark ? "text-green-300" : "text-green-700"
         }`}
       >
-        Manage Staff
+        Assign Staff to Issues
       </h1>
 
       <div
         className={`overflow-x-auto rounded-xl shadow border ${
-          dark ? "bg-[#111] border-[#333]" : "bg-white border-gray-200"
+          dark ? "bg-[#111] border-[#2c2c2c]" : "bg-white border-gray-200"
         }`}
       >
         <table className="table w-full">
           <thead
             className={`text-sm ${
-              dark ? "bg-[#1d1d1d] text-gray-300" : "bg-gray-100"
+              dark ? "bg-[#1e1e1e] text-gray-300" : "bg-gray-100 text-gray-600"
             }`}
           >
             <tr>
-              <th>Name</th>
-              <th>Email</th>
+              <th>Title</th>
               <th>Status</th>
-              <th className="text-center">Action</th>
+              <th>Priority</th>
+              <th>Staff</th>
+              <th>Action</th>
             </tr>
           </thead>
 
           <tbody>
-            {staffs.map((staff) => (
-              <tr key={staff._id}>
-                <td className="font-medium">{staff.name}</td>
-                <td>{staff.email}</td>
-
+            {issues.map((issue) => (
+              <tr key={issue._id}>
+                <td className="font-medium">{issue.title}</td>
                 <td>
                   <span
                     className={`badge capitalize ${
-                      staff.status === "active"
-                        ? "badge-success"
-                        : "badge-error"
+                      issue.status === "pending"
+                        ? "badge-warning"
+                        : "badge-info"
                     }`}
                   >
-                    {staff.status}
+                    {issue.status}
+                  </span>
+                </td>
+                <td>
+                  <span
+                    className={`badge capitalize ${
+                      issue.priority === "high"
+                        ? "badge-error"
+                        : issue.priority === "medium"
+                        ? "badge-warning"
+                        : "badge-success"
+                    }`}
+                  >
+                    {issue.priority}
                   </span>
                 </td>
 
-                <td className="text-center">
+                <td>
+                  <select
+                    className="select select-bordered w-full max-w-xs"
+                    defaultValue=""
+                    onChange={(e) => {
+                      const idx = e.target.value;
+                      setIssues((prev) =>
+                        prev.map((i) =>
+                          i._id === issue._id
+                            ? { ...i, chosenStaff: staffs[idx] }
+                            : i
+                        )
+                      );
+                    }}
+                  >
+                    <option value="">Select Staff</option>
+                    {staffs.map((s, i) => (
+                      <option key={s._id} value={i}>
+                        {s.name} ({s.email})
+                      </option>
+                    ))}
+                  </select>
+                </td>
+
+                <td>
                   <button
-                    onClick={() => toggleStatus(staff)}
+                    onClick={() => assign(issue._id, issue.chosenStaff)}
                     className={`btn btn-xs rounded-md ${
-                      staff.status === "active"
-                        ? "btn-error"
-                        : "btn-success"
+                      dark
+                        ? "bg-indigo-600 hover:bg-indigo-700 text-white"
+                        : "btn-primary"
                     }`}
                   >
-                    {staff.status === "active" ? "Block" : "Activate"}
+                    Assign
                   </button>
                 </td>
               </tr>
             ))}
 
-            {staffs.length === 0 && (
+            {issues.length === 0 && (
               <tr>
-                <td colSpan="4" className="text-center py-6 opacity-60">
-                  No staff found.
+                <td colSpan="5" className="text-center py-8 opacity-60">
+                  No assignable issues 🎉
                 </td>
               </tr>
             )}

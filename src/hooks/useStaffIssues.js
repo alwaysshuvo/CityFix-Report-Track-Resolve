@@ -1,26 +1,37 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import axios from "axios";
-import { useAuth } from "./useAuth";
+import { AuthContext } from "../provider/AuthProvider";
 
 const useStaffIssues = () => {
-  const { user } = useAuth();
+  const { user } = useContext(AuthContext);
+
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     if (!user?.email) return;
 
-    axios
-      .get(`${import.meta.env.VITE_API_BASE}/issues/staff/${user.email}`)
-      .then((res) => {
-        setIssues(res.data);
+    const load = async () => {
+      try {
+        setLoading(true);
+
+        const res = await axios.get(
+          `${import.meta.env.VITE_API_BASE}/issues/staff/${user.email}`
+        );
+
+        const list = Array.isArray(res.data.issues) ? res.data.issues : [];
+
+        setIssues(list);
+      } catch (err) {
+        console.log(err);
+        setError("Failed to load staff issues");
+      } finally {
         setLoading(false);
-      })
-      .catch(() => {
-        setError("Failed to load assigned issues");
-        setLoading(false);
-      });
+      }
+    };
+
+    load();
   }, [user]);
 
   return { issues, loading, error };

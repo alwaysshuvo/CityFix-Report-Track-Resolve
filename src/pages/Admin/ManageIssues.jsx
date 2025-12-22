@@ -12,23 +12,16 @@ const ManageIssues = () => {
   const [openModal, setOpenModal] = useState(false);
   const [selectedIssue, setSelectedIssue] = useState(null);
 
-  /* =====================
-      Load Issues
-  ======================*/
   const fetchIssues = async () => {
     try {
       setLoading(true);
-
       const url = `${import.meta.env.VITE_API_BASE}/issues?page=1&limit=50`;
-      console.log("Fetching Issues From:", url);
-
       const res = await axios.get(url);
-      console.log("Issues Response:", res.data);
 
-      setIssues(res.data.issues || []);
+      setIssues(Array.isArray(res.data.issues) ? res.data.issues : []);
     } catch (err) {
-      console.error("Issues Fetch Error:", err);
       Swal.fire("Error", "Failed to load issues", "error");
+      setIssues([]);
     } finally {
       setLoading(false);
     }
@@ -38,31 +31,27 @@ const ManageIssues = () => {
     fetchIssues();
   }, []);
 
-  /* =====================
-      Assign Staff
-  ======================*/
   const handleAssignStaff = async (staff) => {
     if (!selectedIssue) return;
-
     try {
-      const url = `${import.meta.env.VITE_API_BASE}/issues/assign/${selectedIssue._id}`;
-      console.log("Assigning Staff via:", url);
-      console.log("STAFF OBJ:", staff);
-
-      await axios.patch(url, staff);
+      await axios.patch(
+        `${import.meta.env.VITE_API_BASE}/issues/assign/${selectedIssue._id}`,
+        staff
+      );
 
       Swal.fire({
         icon: "success",
         title: "Staff Assigned Successfully",
         timer: 1500,
         showConfirmButton: false,
+        background: dark ? "#111" : "#fff",
+        color: dark ? "#fff" : "#000",
       });
 
       setOpenModal(false);
       setSelectedIssue(null);
       fetchIssues();
-    } catch (err) {
-      console.error("Assign Error:", err);
+    } catch {
       Swal.fire("Error", "Failed to assign staff", "error");
     }
   };
@@ -76,29 +65,36 @@ const ManageIssues = () => {
   }
 
   return (
-    <div className={`transition-all ${dark ? "text-gray-200" : "text-gray-900"}`}>
+    <div
+      className={`min-h-screen p-4 md:p-8 transition-all duration-300 ${
+        dark ? "bg-[#0B0B0B] text-gray-200" : "bg-gray-100 text-gray-900"
+      }`}
+    >
       <h1
-        className={`text-3xl font-bold mb-6 ${
+        className={`text-3xl font-bold mb-8 ${
           dark ? "text-purple-300" : "text-indigo-600"
         }`}
       >
         Manage Issues
       </h1>
 
+      {/* TABLE */}
       <div
         className={`
-          overflow-x-auto rounded-xl shadow border
+          overflow-x-auto rounded-xl shadow border transition-colors
           ${dark ? "bg-[#111] border-[#2c2c2c]" : "bg-white border-gray-200"}
         `}
       >
         <table
-          className={`table ${
-            dark ? "text-gray-200 [&_tr:hover]:!bg-[#1a1a1a]" : "text-gray-800"
+          className={`table w-full ${
+            dark ? "text-gray-200" : "text-gray-800"
           }`}
         >
           <thead
-            className={`text-sm uppercase ${
-              dark ? "bg-[#1b1b1b] text-gray-300" : "bg-gray-100 text-gray-600"
+            className={`text-xs uppercase ${
+              dark
+                ? "bg-[#1d1d1d] text-gray-300"
+                : "bg-gray-100 text-gray-600"
             }`}
           >
             <tr>
@@ -106,22 +102,30 @@ const ManageIssues = () => {
               <th>Status</th>
               <th>Priority</th>
               <th>Assigned Staff</th>
-              <th>Action</th>
+              <th className="text-center">Action</th>
             </tr>
           </thead>
 
-          <tbody>
+          <tbody
+            className={`text-sm ${
+              dark
+                ? "[&_tr:hover]:!bg-[#1a1a1a] divide-y divide-[#2c2c2c]"
+                : "divide-y divide-gray-200 [&_tr:hover]:!bg-gray-50"
+            }`}
+          >
             {issues.map((issue) => (
-              <tr key={issue._id}>
+              <tr key={issue._id} className="transition">
                 <td className="font-medium">{issue.title}</td>
 
                 <td>
                   <span
-                    className={`badge capitalize ${
+                    className={`badge badge-sm capitalize ${
                       issue.status === "pending"
                         ? "badge-warning"
                         : issue.status === "in-progress"
                         ? "badge-info"
+                        : issue.status === "rejected"
+                        ? "badge-error"
                         : "badge-success"
                     }`}
                   >
@@ -131,8 +135,12 @@ const ManageIssues = () => {
 
                 <td>
                   <span
-                    className={`badge capitalize ${
-                      issue.priority === "high" ? "badge-error" : "badge-outline"
+                    className={`badge badge-sm capitalize ${
+                      issue.priority === "high"
+                        ? "badge-error"
+                        : issue.priority === "medium"
+                        ? "badge-warning"
+                        : "badge-info"
                     }`}
                   >
                     {issue.priority}
@@ -141,29 +149,27 @@ const ManageIssues = () => {
 
                 <td>
                   {issue.assignedStaff ? (
-                    <div>
+                    <div className="leading-tight">
                       <p className="font-medium">{issue.assignedStaff.name}</p>
-                      <p className="text-xs opacity-60">
-                        {issue.assignedStaff.email}
-                      </p>
+                      <p className="text-xs opacity-60">{issue.assignedStaff.email}</p>
                     </div>
                   ) : (
-                    <span className="italic opacity-60">Not Assigned</span>
+                    <span className="text-xs italic opacity-60">Not Assigned</span>
                   )}
                 </td>
 
-                <td>
+                <td className="text-center">
                   <button
                     onClick={() => {
                       setSelectedIssue(issue);
                       setOpenModal(true);
                     }}
                     disabled={!!issue.assignedStaff}
-                    className={`btn btn-xs ${
+                    className={`btn btn-xs rounded-md font-medium ${
                       issue.assignedStaff
                         ? "btn-disabled"
                         : dark
-                        ? "bg-purple-600 text-white hover:bg-purple-700"
+                        ? "bg-purple-600 hover:bg-purple-700 text-white"
                         : "btn-primary"
                     }`}
                   >
@@ -175,8 +181,11 @@ const ManageIssues = () => {
 
             {issues.length === 0 && (
               <tr>
-                <td colSpan="5" className="py-6 text-center opacity-70">
-                  No issues found
+                <td
+                  colSpan="5"
+                  className="text-center py-10 opacity-60 italic"
+                >
+                  No issues found.
                 </td>
               </tr>
             )}
@@ -184,6 +193,7 @@ const ManageIssues = () => {
         </table>
       </div>
 
+      {/* Modal */}
       {selectedIssue && (
         <AssignStaffModal
           open={openModal}
@@ -192,6 +202,7 @@ const ManageIssues = () => {
             setSelectedIssue(null);
           }}
           onAssign={handleAssignStaff}
+          dark={dark}
         />
       )}
     </div>

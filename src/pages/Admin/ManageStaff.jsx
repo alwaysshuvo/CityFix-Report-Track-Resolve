@@ -9,22 +9,23 @@ const ManageStaff = () => {
   const [staffs, setStaffs] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Load staff list
   useEffect(() => {
     const loadStaff = async () => {
       try {
         const res = await axios.get(`${import.meta.env.VITE_API_BASE}/staff`);
-        const list = Array.isArray(res.data)
-          ? res.data
-          : res.data?.staff || [];
+        const list = Array.isArray(res.data) ? res.data : res.data?.staff || [];
         setStaffs(list);
       } catch (err) {
-        console.log(err);
-        Swal.fire("Error", "Failed to load staff", "error");
+        Swal.fire({
+          icon: "error",
+          title: "Failed to load staff",
+          text: "Try again later",
+        });
       } finally {
         setLoading(false);
       }
     };
-
     loadStaff();
   }, []);
 
@@ -32,36 +33,47 @@ const ManageStaff = () => {
     const newStatus = staff.status === "active" ? "blocked" : "active";
 
     const confirm = await Swal.fire({
-      title: "Are you sure?",
-      text: `This user will be marked as ${newStatus}`,
+      title: "Confirm Action",
+      text: `This staff will be marked as ${newStatus}`,
       icon: "warning",
       showCancelButton: true,
-      confirmButtonText: "Yes",
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, update",
       background: dark ? "#1a1a1a" : "#fff",
       color: dark ? "#fff" : "#000",
     });
 
     if (!confirm.isConfirmed) return;
 
-    await axios.patch(
-      `${import.meta.env.VITE_API_BASE}/staff/status/${staff._id}`,
-      { status: newStatus }
-    );
+    try {
+      await axios.patch(
+        `${import.meta.env.VITE_API_BASE}/staff/status/${staff._id}`,
+        { status: newStatus }
+      );
 
-    setStaffs((prev) =>
-      prev.map((s) =>
-        s._id === staff._id ? { ...s, status: newStatus } : s
-      )
-    );
+      // Update UI
+      setStaffs((prev) =>
+        prev.map((s) =>
+          s._id === staff._id ? { ...s, status: newStatus } : s
+        )
+      );
 
-    Swal.fire({
-      icon: "success",
-      title: "Updated!",
-      showConfirmButton: false,
-      timer: 1200,
-      background: dark ? "#1a1a1a" : "#fff",
-      color: dark ? "#fff" : "#000",
-    });
+      Swal.fire({
+        icon: "success",
+        title: `User ${newStatus}!`,
+        timer: 1200,
+        showConfirmButton: false,
+        background: dark ? "#1a1a1a" : "#fff",
+        color: dark ? "#fff" : "#000",
+      });
+    } catch {
+      Swal.fire({
+        icon: "error",
+        title: "Update failed",
+        text: "Server error",
+      });
+    }
   };
 
   if (loading) {
@@ -91,11 +103,7 @@ const ManageStaff = () => {
           dark ? "bg-[#111] border-[#2c2c2c]" : "bg-white border-gray-200"
         }`}
       >
-        <table
-          className={`table w-full ${
-            dark ? "text-gray-300" : "text-gray-800"
-          }`}
-        >
+        <table className="table w-full">
           <thead
             className={`text-xs sm:text-sm uppercase ${
               dark ? "bg-[#1d1d1d] text-gray-300" : "bg-gray-100 text-gray-600"
@@ -117,7 +125,9 @@ const ManageStaff = () => {
                   dark ? "hover:bg-[#1a1a1a]" : "hover:bg-gray-50"
                 }`}
               >
-                <td className="px-3 py-3 font-medium">{staff.name}</td>
+                <td className="px-3 py-3 font-medium">
+                  {staff.name || "Unnamed"}
+                </td>
                 <td className="px-3 py-3 break-all">{staff.email}</td>
 
                 <td className="px-3 py-3">
