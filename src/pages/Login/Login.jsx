@@ -22,12 +22,17 @@ const Login = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // ⏳ Handle global redirect when Firebase auth updates
   useEffect(() => {
     if (auth.currentUser && role && !roleLoading) {
-      setError(""); // Clear messages
-      if (role === "admin") navigate("/admin", { replace: true });
-      else if (role === "staff") navigate("/staff", { replace: true });
-      else navigate("/dashboard", { replace: true });
+      setError("");
+      if (role === "admin") {
+        navigate("/admin", { replace: true });
+      } else if (role === "staff") {
+        navigate("/staff", { replace: true });
+      } else {
+        navigate("/dashboard", { replace: true });
+      }
     }
   }, [role, roleLoading, navigate]);
 
@@ -41,27 +46,17 @@ const Login = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError("");
+    setLoading(true);
 
     try {
       const result = await signInWithEmailAndPassword(auth, email, password);
 
-      const res = await fetch(
-        `${import.meta.env.VITE_API_BASE}/jwt`,
-        {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ email: result.user.email }),
-        }
-      );
-
-      const data = await res.json();
-      localStorage.setItem("access-token", data.token);
+      await getJwtToken(result.user.email);
 
       setError("");
       navigate("/dashboard");
-    } catch {
+    } catch (err) {
       setError("Invalid email or password");
     } finally {
       setLoading(false);
@@ -69,11 +64,11 @@ const Login = () => {
   };
 
   const handleGoogleLogin = async () => {
-    const provider = new GoogleAuthProvider();
     setError("");
     setLoading(true);
 
     try {
+      const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
 
       await axios.post(
@@ -89,13 +84,14 @@ const Login = () => {
 
       setError("");
       navigate("/dashboard");
-    } catch {
-      setError("Google login failed");
+    } catch (err) {
+      setError("Google login failed, try again");
     } finally {
       setLoading(false);
     }
   };
 
+  // 🔄 Still loading role
   if (roleLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -134,12 +130,12 @@ const Login = () => {
             Welcome Back 👋
           </h1>
           <p className={`mt-2 text-sm ${dark ? "text-gray-400" : "text-gray-500"}`}>
-            Login to <span className="text-indigo-600">CityFix</span> and start reporting
+            Login to <span className="text-indigo-600 font-semibold">CityFix</span>
           </p>
         </div>
 
+        {/* LOGIN FORM */}
         <form onSubmit={handleLogin} className="space-y-5">
-          {/* Email */}
           <div>
             <label className={`text-sm font-medium ${dark ? "text-gray-300" : "text-gray-700"}`}>
               Email
@@ -161,7 +157,7 @@ const Login = () => {
             />
           </div>
 
-          {/* Password */}
+          {/* PASSWORD */}
           <div>
             <label className={`text-sm font-medium ${dark ? "text-gray-300" : "text-gray-700"}`}>
               Password
@@ -196,9 +192,12 @@ const Login = () => {
             </div>
           </div>
 
-          {error && <p className="text-red-500 text-sm font-medium">{error}</p>}
+          {error && (
+            <p className="text-red-500 text-sm font-medium">
+              {error}
+            </p>
+          )}
 
-          {/* Submit */}
           <button
             disabled={loading}
             className="
@@ -210,12 +209,14 @@ const Login = () => {
           </button>
         </form>
 
+        {/* DIVIDER */}
         <div className="flex items-center gap-3 my-6">
           <div className={`flex-1 h-px ${dark ? "bg-[#333]" : "bg-gray-200"}`} />
           <span className="text-xs text-gray-400">OR</span>
           <div className={`flex-1 h-px ${dark ? "bg-[#333]" : "bg-gray-200"}`} />
         </div>
 
+        {/* GOOGLE LOGIN */}
         <button
           onClick={handleGoogleLogin}
           disabled={loading}
@@ -236,9 +237,10 @@ const Login = () => {
           Continue with Google
         </button>
 
+        {/* REGISTER LINK */}
         <p className={`text-center text-sm mt-6 ${dark ? "text-gray-400" : "text-gray-600"}`}>
-          No account?{" "}
-          <Link className="text-indigo-600 font-semibold" to="/register">
+          No account?
+          <Link className="text-indigo-600 font-semibold ml-1" to="/register">
             Register
           </Link>
         </p>
