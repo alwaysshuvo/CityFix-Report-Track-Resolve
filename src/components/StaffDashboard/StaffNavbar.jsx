@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useContext } from "react";
 import { ThemeContext } from "../../provider/ThemeContext";
 import { FiSun, FiMoon } from "react-icons/fi";
+import { FaHome } from "react-icons/fa"; // 🏠 NEW
 
 const StaffNavbar = ({ setOpen }) => {
   const { dark, toggleTheme } = useContext(ThemeContext);
@@ -12,12 +13,15 @@ const StaffNavbar = ({ setOpen }) => {
         h-14 sm:h-16 flex items-center justify-between
         px-3 sm:px-5 md:px-6 border-b
         transition-all duration-300 sticky top-0 z-20
-        ${dark ? "bg-[#0B0B0B] text-white border-[#222]" : "bg-white text-gray-900 border-gray-200"}
+        ${
+          dark
+            ? "bg-[#0B0B0B] text-white border-[#222]"
+            : "bg-white text-gray-900 border-gray-200"
+        }
       `}
     >
       {/* Left Section */}
       <div className="flex items-center gap-3 min-w-0">
-        {/* Mobile Drawer Button */}
         <button
           onClick={() => setOpen(true)}
           className={`
@@ -28,12 +32,7 @@ const StaffNavbar = ({ setOpen }) => {
           ☰
         </button>
 
-        <span
-          className="
-            text-lg sm:text-xl font-extrabold truncate
-            text-primary
-          "
-        >
+        <span className="text-lg sm:text-xl font-extrabold truncate text-primary">
           Staff Panel
         </span>
       </div>
@@ -52,16 +51,21 @@ const StaffNavbar = ({ setOpen }) => {
           {dark ? <FiSun size={18} /> : <FiMoon size={18} />}
         </button>
 
-        {/* Go Home */}
+        {/* CityFix Home Button (NEW) */}
         <Link
           to="/"
           className={`
-            text-sm sm:text-base font-medium hidden xs:block transition
-            hover:text-primary whitespace-nowrap
-            ${dark ? "text-white" : "text-gray-800"}
+            flex items-center gap-2 text-xs sm:text-sm font-medium rounded-md px-3 py-1.5
+            transition hover:scale-105
+            ${
+              dark
+                ? "bg-indigo-600 hover:bg-indigo-700 text-white"
+                : "bg-indigo-500 hover:bg-indigo-600 text-white"
+            }
           `}
         >
-          Go to Website
+          <FaHome size={14} />
+          <span className="hidden sm:inline">CityFix Home</span>
         </Link>
       </div>
     </header>

@@ -1,9 +1,36 @@
 import { motion } from "framer-motion";
 import { useContext } from "react";
 import { ThemeContext } from "../../provider/ThemeContext";
+import Swal from "sweetalert2"; // <== added import!
 
 const Contact = () => {
   const { dark } = useContext(ThemeContext);
+
+  const handleMessageSubmit = (e) => {
+    e.preventDefault();
+    const form = e.target;
+
+    const name = form.name.value;
+    const email = form.email.value;
+    const message = form.message.value;
+
+    if (!name || !email || !message) {
+      return Swal.fire({
+        icon: "warning",
+        title: "Missing Fields",
+        text: "Please fill all fields before sending.",
+      });
+    }
+
+    Swal.fire({
+      icon: "success",
+      title: "Message Sent!",
+      text: "Thanks for contacting CityFix. We'll reply soon.",
+      confirmButtonColor: "#6366f1",
+    });
+
+    form.reset();
+  };
 
   return (
     <section
@@ -31,7 +58,7 @@ const Contact = () => {
           `}
         >
           Contact{" "}
-          <span className={`${dark ? "text-purple-400" : "text-blue-600"}`}>
+          <span className={dark ? "text-purple-400" : "text-blue-600"}>
             CityFix
           </span>
         </h1>
@@ -46,6 +73,7 @@ const Contact = () => {
       </motion.div>
 
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 px-6">
+        
         {/* FORM CARD */}
         <motion.div
           initial={{ opacity: 0, x: -40 }}
@@ -71,12 +99,14 @@ const Contact = () => {
             Send Us a Message
           </h2>
 
-          <form className="space-y-6">
+          {/* FORM START */}
+          <form className="space-y-6" onSubmit={handleMessageSubmit}>
             <div>
               <label className={`font-semibold ${dark ? "text-gray-300" : "text-slate-700"}`}>
                 Name
               </label>
               <input
+                name="name"
                 type="text"
                 placeholder="John Doe"
                 className={`
@@ -95,6 +125,7 @@ const Contact = () => {
                 Email
               </label>
               <input
+                name="email"
                 type="email"
                 placeholder="you@email.com"
                 className={`
@@ -113,6 +144,7 @@ const Contact = () => {
                 Message
               </label>
               <textarea
+                name="message"
                 rows="4"
                 placeholder="Type your message…"
                 className={`
@@ -144,6 +176,7 @@ const Contact = () => {
         </motion.div>
 
         {/* RIGHT SIDE CONTENT */}
+
         <motion.div
           initial={{ opacity: 0, x: 40 }}
           whileInView={{ opacity: 1, x: 0 }}

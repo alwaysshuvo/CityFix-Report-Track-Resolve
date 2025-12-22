@@ -4,7 +4,8 @@ import { useContext, useState } from "react";
 import Swal from "sweetalert2";
 import { AuthContext } from "../../provider/AuthProvider";
 import { FiEye, FiEyeOff, FiUploadCloud } from "react-icons/fi";
-import { updateProfile } from "firebase/auth";
+import { updateProfile, signOut } from "firebase/auth";
+import { auth } from "../../firebase/firebase.config";
 import { ThemeContext } from "../../provider/ThemeContext";
 
 const Register = () => {
@@ -15,7 +16,6 @@ const Register = () => {
   const [uploading, setUploading] = useState(false);
   const [imgURL, setImgURL] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
-
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -24,7 +24,6 @@ const Register = () => {
   const handleImgUpload = async (e) => {
     const img = e.target.files[0];
     if (!img) return;
-
     setUploading(true);
     setUploadProgress(10);
 
@@ -83,13 +82,15 @@ const Register = () => {
 
       Swal.fire({
         icon: "success",
-        title: "Welcome to CityFix!",
-        text: `${name}, account created 🎉`,
+        title: "Account Created!",
+        text: `${name}, now login to continue`,
         timer: 1500,
         showConfirmButton: false,
       });
 
-      navigate("/");
+      await signOut(auth);
+
+      navigate("/login");
     } catch (err) {
       Swal.fire("Error", err.message, "error");
     }
@@ -98,13 +99,15 @@ const Register = () => {
   const handleGoogleSignup = async () => {
     try {
       await googleLogin();
+
       Swal.fire({
         icon: "success",
         title: "Signed in with Google!",
         timer: 1200,
         showConfirmButton: false,
       });
-      navigate("/");
+
+      navigate("/dashboard");
     } catch (err) {
       Swal.fire("Error", err.message, "error");
     }
@@ -135,7 +138,6 @@ const Register = () => {
           }
         `}
       >
-        {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-extrabold">
             Create an <span className="text-indigo-500">Account</span>
@@ -143,7 +145,7 @@ const Register = () => {
           <p className="text-sm opacity-70 mt-2">Join CityFix & improve your city</p>
         </div>
 
-        {/* Profile Upload */}
+        {/* Avatar Upload */}
         <div className="text-center mb-8">
           <div className="relative w-28 h-28 mx-auto">
             <img
@@ -168,7 +170,6 @@ const Register = () => {
             </label>
           </div>
 
-          {/* Upload Progress */}
           {uploading && (
             <div className="mt-3 w-32 mx-auto bg-gray-300 dark:bg-[#333] rounded-full h-2 overflow-hidden">
               <div
@@ -179,9 +180,8 @@ const Register = () => {
           )}
         </div>
 
-        {/* Form */}
+        {/* Form Start */}
         <form onSubmit={handleRegister} className="space-y-6">
-          {/* Name */}
           <div>
             <label className="font-medium mb-1 block">Full Name</label>
             <input
@@ -199,7 +199,6 @@ const Register = () => {
             />
           </div>
 
-          {/* Email */}
           <div>
             <label className="font-medium mb-1 block">Email</label>
             <input
@@ -217,7 +216,6 @@ const Register = () => {
             />
           </div>
 
-          {/* Password */}
           <div>
             <label className="font-medium mb-1 block">Password</label>
             <div className="relative">
@@ -243,7 +241,6 @@ const Register = () => {
             </div>
           </div>
 
-          {/* Confirm */}
           <div>
             <label className="font-medium mb-1 block">Confirm Password</label>
             <div className="relative">
@@ -271,7 +268,6 @@ const Register = () => {
             </div>
           </div>
 
-          {/* Terms */}
           <div className="flex items-center gap-3 text-sm">
             <input type="checkbox" name="terms" className="checkbox checkbox-primary" />
             <span className="opacity-75">
@@ -290,7 +286,6 @@ const Register = () => {
           </motion.button>
         </form>
 
-        {/* Login */}
         <p className="text-center mt-6 opacity-80 text-sm">
           Already have an account?
           <Link to="/login" className="text-indigo-500 ml-1 font-semibold">
@@ -298,14 +293,12 @@ const Register = () => {
           </Link>
         </p>
 
-        {/* Divider */}
         <div className="flex items-center gap-3 my-6 opacity-50">
           <div className="flex-1 h-px bg-gray-400" />
           <span className="text-xs">OR</span>
           <div className="flex-1 h-px bg-gray-400" />
         </div>
 
-        {/* Google */}
         <motion.button
           onClick={handleGoogleSignup}
           whileHover={{ scale: 1.05 }}

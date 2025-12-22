@@ -18,9 +18,16 @@ const ManageIssues = () => {
   const fetchIssues = async () => {
     try {
       setLoading(true);
-      const res = await axios.get("${import.meta.env.VITE_API_BASE}/issues");
-      setIssues(res.data.issues || []); // 🔥 main fix
+
+      const url = `${import.meta.env.VITE_API_BASE}/issues?page=1&limit=50`;
+      console.log("Fetching Issues From:", url);
+
+      const res = await axios.get(url);
+      console.log("Issues Response:", res.data);
+
+      setIssues(res.data.issues || []);
     } catch (err) {
+      console.error("Issues Fetch Error:", err);
       Swal.fire("Error", "Failed to load issues", "error");
     } finally {
       setLoading(false);
@@ -38,10 +45,11 @@ const ManageIssues = () => {
     if (!selectedIssue) return;
 
     try {
-      await axios.patch(
-        `${import.meta.env.VITE_API_BASE}/issues/assign/${selectedIssue._id}`,
-        staff
-      );
+      const url = `${import.meta.env.VITE_API_BASE}/issues/assign/${selectedIssue._id}`;
+      console.log("Assigning Staff via:", url);
+      console.log("STAFF OBJ:", staff);
+
+      await axios.patch(url, staff);
 
       Swal.fire({
         icon: "success",
@@ -53,7 +61,8 @@ const ManageIssues = () => {
       setOpenModal(false);
       setSelectedIssue(null);
       fetchIssues();
-    } catch {
+    } catch (err) {
+      console.error("Assign Error:", err);
       Swal.fire("Error", "Failed to assign staff", "error");
     }
   };

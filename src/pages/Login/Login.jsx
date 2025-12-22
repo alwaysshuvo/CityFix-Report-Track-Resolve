@@ -24,6 +24,7 @@ const Login = () => {
 
   useEffect(() => {
     if (auth.currentUser && role && !roleLoading) {
+      setError(""); // Clear messages
       if (role === "admin") navigate("/admin", { replace: true });
       else if (role === "staff") navigate("/staff", { replace: true });
       else navigate("/dashboard", { replace: true });
@@ -31,7 +32,10 @@ const Login = () => {
   }, [role, roleLoading, navigate]);
 
   const getJwtToken = async (email) => {
-    const res = await axios.post("${import.meta.env.VITE_API_BASE}/jwt", { email });
+    const res = await axios.post(
+      `${import.meta.env.VITE_API_BASE}/jwt`,
+      { email }
+    );
     localStorage.setItem("access-token", res.data.token);
   };
 
@@ -43,13 +47,20 @@ const Login = () => {
     try {
       const result = await signInWithEmailAndPassword(auth, email, password);
 
-      const res = await fetch("${import.meta.env.VITE_API_BASE}/jwt", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email: result.user.email }),
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_API_BASE}/jwt`,
+        {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ email: result.user.email }),
+        }
+      );
+
       const data = await res.json();
       localStorage.setItem("access-token", data.token);
+
+      setError("");
+      navigate("/dashboard");
     } catch {
       setError("Invalid email or password");
     } finally {
@@ -60,19 +71,28 @@ const Login = () => {
   const handleGoogleLogin = async () => {
     const provider = new GoogleAuthProvider();
     setError("");
+    setLoading(true);
 
     try {
       const result = await signInWithPopup(auth, provider);
 
-      await axios.post("${import.meta.env.VITE_API_BASE}/users", {
-        name: result.user.displayName,
-        email: result.user.email,
-        photo: result.user.photoURL,
-      });
+      await axios.post(
+        `${import.meta.env.VITE_API_BASE}/users`,
+        {
+          name: result.user.displayName,
+          email: result.user.email,
+          photo: result.user.photoURL,
+        }
+      );
 
       await getJwtToken(result.user.email);
+
+      setError("");
+      navigate("/dashboard");
     } catch {
       setError("Google login failed");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -198,6 +218,7 @@ const Login = () => {
 
         <button
           onClick={handleGoogleLogin}
+          disabled={loading}
           className={`
             w-full py-3 border rounded-xl flex items-center justify-center gap-2
             ${

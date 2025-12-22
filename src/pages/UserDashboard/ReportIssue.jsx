@@ -13,8 +13,13 @@ const ReportIssue = () => {
   const [imageLoading, setImageLoading] = useState(false);
   const [uploadedImage, setUploadedImage] = useState("");
 
+  /* ===========================
+       IMAGE UPLOAD
+  ============================ */
   const handleImageUpload = async (file) => {
+    console.log("Uploading Image:", file);
     const apiKey = import.meta.env.VITE_IMGBB_API_KEY;
+    console.log("IMGBB KEY:", apiKey);
 
     const formData = new FormData();
     formData.append("image", file);
@@ -27,107 +32,150 @@ const ReportIssue = () => {
       );
       const url = res.data.data.url;
       setUploadedImage(url);
-      Swal.fire("Uploaded!", "Image uploaded successfully", "success");
+      console.log("Uploaded Image URL:", url);
+
+      Swal.fire({
+        title: "Image Uploaded",
+        icon: "success",
+        timer: 1200,
+        showConfirmButton: false,
+      });
     } catch (err) {
-      Swal.fire("Error", "Failed to upload image", "error");
+      console.log("Image Upload Error:", err);
+      Swal.fire("Upload Failed", "Could not upload image.", "error");
     } finally {
       setImageLoading(false);
     }
   };
 
+  /* ===========================
+       SUBMIT ISSUE
+  ============================ */
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const form = e.target;
+    console.log("FORM SUBMITTED!");
 
+    if (!user?.email) {
+      console.log("No User Email Found!");
+      Swal.fire("Login Required", "You must login first!", "warning");
+      return;
+    }
+
+    const form = e.target;
     const newIssue = {
       title: form.title.value,
       category: form.category.value.toLowerCase(),
       priority: form.priority.value.toLowerCase(),
       location: form.location.value,
       description: form.description.value,
-      reporterEmail: user?.email,
-      image: uploadedImage || "",
+      reporterEmail: user.email,
+      image: uploadedImage,
     };
+
+    console.log("Issue Payload:", newIssue);
+    console.log(
+      "Backend URL:",
+      `${import.meta.env.VITE_API_BASE}/issues`
+    );
+
+    const confirm = await Swal.fire({
+      title: "Submit Issue?",
+      text: "Send this issue to city admins?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#4f46e5",
+      cancelButtonColor: "#999",
+      confirmButtonText: "Yes, Submit",
+    });
+
+    if (!confirm.isConfirmed) {
+      console.log("User cancelled submit.");
+      return;
+    }
 
     try {
       setLoading(true);
-      const res = await axios.post("${import.meta.env.VITE_API_BASE}/issues", newIssue);
+
+      const res = await axios.post(
+        `${import.meta.env.VITE_API_BASE}/issues`,
+        newIssue
+      );
+
+      console.log("Backend Response:", res.data);
 
       if (res.data.insertedId) {
         Swal.fire({
           icon: "success",
           title: "Issue Submitted!",
-          text: "Your issue has been reported successfully.",
-          confirmButtonColor: "#6366f1",
+          text: "Admin will assign staff and track progress.",
+          confirmButtonColor: "#4f46e5",
         });
+
         form.reset();
         setUploadedImage("");
       }
-    } catch {
-      Swal.fire("Error", "Backend did not accept your data.", "error");
+    } catch (err) {
+      console.log("Submit Error:", err);
+      Swal.fire("Error", "Backend didn't accept data.", "error");
     } finally {
       setLoading(false);
     }
   };
 
-  const inputClass = `
-    input w-full mt-2 transition
-    ${dark ? "bg-[#111] border-[#333] text-white" : "bg-white border-gray-300 text-gray-900"}
-  `;
-
-  const selectClass = `
-    select w-full mt-2 transition
-    ${dark ? "bg-[#111] border-[#333] text-white" : "bg-white border-gray-300 text-gray-900"}
-  `;
-
-  const textareaClass = `
-    textarea w-full mt-2 transition
-    ${dark ? "bg-[#111] border-[#333] text-white" : "bg-white border-gray-300 text-gray-900"}
-  `;
-
-  const fileClass = `
-    file-input w-full mt-2 transition
-    ${dark ? "bg-[#111] border-[#333] text-white" : "bg-white border-gray-300 text-gray-900"}
-  `;
+  /* INPUT STYLES */
+  const inputClass = `input w-full mt-2 ${
+    dark
+      ? "bg-[#111] border-[#333] text-white"
+      : "bg-white border-gray-300 text-gray-900"
+  }`;
+  const selectClass = `select w-full mt-2 ${
+    dark
+      ? "bg-[#111] border-[#333] text-white"
+      : "bg-white border-gray-300 text-gray-900"
+  }`;
+  const textareaClass = `textarea w-full mt-2 ${
+    dark
+      ? "bg-[#111] border-[#333] text-white"
+      : "bg-white border-gray-300 text-gray-900"
+  }`;
+  const fileClass = `file-input w-full mt-2 ${
+    dark
+      ? "bg-[#111] border-[#333] text-white"
+      : "bg-white border-gray-300 text-gray-900"
+  }`;
 
   return (
     <div
-      className={`p-6 min-h-screen max-w-5xl mx-auto transition-all duration-300
-      ${dark ? "text-white bg-[#0d0d0d]" : "text-gray-900 bg-gray-100"}`}
+      className={`p-6 min-h-screen max-w-5xl mx-auto ${
+        dark ? "text-white bg-[#0d0d0d]" : "text-gray-900 bg-gray-100"
+      }`}
     >
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
+      <motion.div>
         <h1 className="text-3xl font-bold mb-2">Report an Issue</h1>
-        <p className={`${dark ? "text-gray-400" : "text-gray-500"} mb-8`}>
-          Help improve your city by reporting public infrastructure issues.
-        </p>
-
         <form
           onSubmit={handleSubmit}
-          className={`shadow-xl rounded-xl p-8 space-y-6 transition
-          ${dark ? "bg-[#161616] border border-[#2b2b2b]" : "bg-white border border-gray-200"}`}
+          className={`shadow-xl rounded-xl p-8 space-y-6 ${
+            dark
+              ? "bg-[#161616] border border-[#2b2b2b]"
+              : "bg-white border border-gray-200"
+          }`}
         >
-          {/* TITLE */}
           <div>
-            <label className="font-medium">Issue Title</label>
+            <label>Issue Title</label>
             <input
-              name="title"
               type="text"
+              name="title"
               required
               className={inputClass}
-              placeholder="e.g. Broken Streetlight"
+              placeholder="Broken Streetlight..."
             />
           </div>
 
-          {/* CATEGORY / PRIORITY / LOCATION */}
-          <div className="grid md:grid-cols-3 gap-5">
+          <div className="grid md:grid-cols-3 gap-4">
             <div>
-              <label className="font-medium">Category</label>
+              <label>Category</label>
               <select name="category" required className={selectClass}>
-                <option value="">Select category</option>
+                <option value="">Select</option>
                 <option value="road">Road</option>
                 <option value="water">Water</option>
                 <option value="electrical">Electrical</option>
@@ -137,65 +185,52 @@ const ReportIssue = () => {
             </div>
 
             <div>
-              <label className="font-medium">Priority</label>
+              <label>Priority</label>
               <select name="priority" required className={selectClass}>
-                <option value="">Select priority</option>
+                <option value="">Select</option>
                 <option value="normal">Normal</option>
                 <option value="high">High</option>
               </select>
             </div>
 
             <div>
-              <label className="font-medium">Location</label>
+              <label>Location</label>
               <input
-                name="location"
                 type="text"
+                name="location"
                 required
                 className={inputClass}
-                placeholder="e.g. Uttara, Dhaka"
+                placeholder="Uttara, Dhaka"
               />
             </div>
           </div>
 
-          {/* DESCRIPTION */}
           <div>
-            <label className="font-medium">Description</label>
+            <label>Description</label>
             <textarea
               name="description"
               rows="4"
               required
               className={textareaClass}
-              placeholder="Describe the issue clearly..."
             />
           </div>
 
-          {/* IMAGE UPLOAD */}
           <div>
-            <label className="font-medium">Upload Image</label>
+            <label>Upload Image</label>
             <input
               type="file"
-              accept="image/*"
               className={fileClass}
               onChange={(e) => handleImageUpload(e.target.files[0])}
             />
-
-            {imageLoading && (
-              <p className="text-xs mt-1 text-yellow-400">Uploading...</p>
-            )}
-
-            {uploadedImage && (
-              <img
-                src={uploadedImage}
-                alt="uploaded"
-                className="w-40 mt-3 rounded-xl shadow border"
-              />
-            )}
+            {imageLoading && <p>Uploading...</p>}
+            {uploadedImage && <img src={uploadedImage} className="w-40 mt-3" />}
           </div>
 
           <motion.button
+            type="submit"
+            disabled={loading}
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.95 }}
-            disabled={loading}
             className="btn btn-primary w-full text-lg"
           >
             {loading ? "Submitting..." : "Submit Issue"}
