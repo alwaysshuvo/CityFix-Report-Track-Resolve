@@ -12,7 +12,7 @@ const useStaffIssues = () => {
     if (!user?.email) return;
 
     axios
-      .get(`http://localhost:5000/issues/staff/${user.email}`)
+      .get(`${import.meta.env.VITE_API_BASE}/issues/staff/${user.email}`)
       .then((res) => {
         setIssues(res.data);
         setLoading(false);

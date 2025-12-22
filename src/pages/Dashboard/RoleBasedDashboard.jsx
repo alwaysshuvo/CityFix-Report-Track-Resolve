@@ -16,7 +16,7 @@ const RoleBasedDashboard = () => {
     if (!user?.email) return;
 
     axios
-      .get(`http://localhost:5000/users/${user.email}`)
+      .get(`${import.meta.env.VITE_API_BASE}/users/${user.email}`)
       .then((res) => {
         setRole(res.data?.role);
         setLoading(false);

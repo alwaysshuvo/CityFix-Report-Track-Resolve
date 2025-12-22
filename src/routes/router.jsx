@@ -43,6 +43,7 @@ import TestTheme from "../TestTheme";
 import PaymentSuccess from "../pages/PaymentSuccess";
 
 
+
 const router = createBrowserRouter([
   /* =========================
      🌐 PUBLIC ROUTES
@@ -117,6 +118,7 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <StaffDashboard /> },
       { path: "issues", element: <AssignedIssues /> },
+
       { path: "profile", element: <StaffProfile /> },
     ],
   },

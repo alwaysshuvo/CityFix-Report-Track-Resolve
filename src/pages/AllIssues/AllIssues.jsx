@@ -26,7 +26,7 @@ const AllIssues = () => {
     try {
       setLoading(true);
 
-      const res = await axios.get("http://localhost:5000/issues", {
+      const res = await axios.get(`${import.meta.env.VITE_API_BASE}/issues`, {
         params: {
           page,
           limit: PAGE_SIZE,
@@ -72,7 +72,6 @@ const AllIssues = () => {
 
       {/* Filters */}
       <div className="flex flex-col md:flex-row items-start md:items-center gap-3 mb-6">
-
         <input
           value={search}
           onChange={(e) => {

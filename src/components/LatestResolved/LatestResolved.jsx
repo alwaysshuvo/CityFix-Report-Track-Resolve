@@ -13,15 +13,16 @@ const LatestResolved = () => {
   }, []);
 
   const loadResolved = async () => {
-    try {
-      const res = await axios.get(
-        `http://localhost:5000/issues?status=resolved&page=1&limit=4`
-      );
-      setIssues(res.data.issues || []);
-    } catch (err) {
-      console.error("Failed to load resolved", err);
-    }
-  };
+  try {
+    const res = await axios.get(
+      `${import.meta.env.VITE_API_BASE}/issues?status=resolved&page=1&limit=4`
+    );
+    setIssues(res.data.issues || []);
+  } catch (err) {
+    console.error("Failed to load resolved", err);
+  }
+};
+
 
   return (
     <section className="max-w-7xl mx-auto px-4 mt-16">

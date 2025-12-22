@@ -1,31 +1,48 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
+import { ThemeContext } from "../../provider/ThemeContext";
 
-const ManageStaff = () => {
+const AssignStaff = () => {
+  const { dark } = useContext(ThemeContext);
+
   const [staffs, setStaffs] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios.get("http://localhost:5000/staff").then((res) => {
-      setStaffs(res.data);
-    });
+    const loadData = async () => {
+      try {
+        const res = await axios.get(`${import.meta.env.VITE_API_BASE}/staff`);
+        const list = Array.isArray(res.data)
+          ? res.data
+          : res.data?.staff || [];
+        setStaffs(list);
+      } catch (err) {
+        console.log(err);
+        Swal.fire("Error", "Failed to load staff list", "error");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
   }, []);
 
   const toggleStatus = async (staff) => {
     const newStatus = staff.status === "active" ? "blocked" : "active";
 
     const confirm = await Swal.fire({
-      title: `Are you sure?`,
+      title: "Are you sure?",
       text: `This staff will be ${newStatus}`,
       icon: "warning",
       showCancelButton: true,
-      confirmButtonText: "Yes",
+      confirmButtonColor: "#3085d6",
     });
 
     if (!confirm.isConfirmed) return;
 
     await axios.patch(
-      `http://localhost:5000/staff/status/${staff._id}`,
+      `${import.meta.env.VITE_API_BASE}/staff/status/${staff._id}`,
       { status: newStatus }
     );
 
@@ -35,26 +52,47 @@ const ManageStaff = () => {
       )
     );
 
-    Swal.fire({
-      icon: "success",
-      title: "Updated",
-      timer: 1200,
-      showConfirmButton: false,
-    });
+    Swal.fire("Updated!", "", "success");
   };
 
-  return (
-    <div>
-      <h1 className="text-3xl font-bold mb-6">Manage Staff</h1>
+  if (loading) {
+    return (
+      <div className="flex justify-center mt-20">
+        <span className="loading loading-spinner loading-lg"></span>
+      </div>
+    );
+  }
 
-      <div className="overflow-x-auto bg-base-100 rounded-xl shadow border">
-        <table className="table table-zebra">
-          <thead className="bg-base-200">
+  return (
+    <div
+      className={`p-4 md:p-8 transition-all ${
+        dark ? "bg-[#0b0b0b] text-white" : "bg-white"
+      }`}
+    >
+      <h1
+        className={`text-3xl font-bold mb-6 ${
+          dark ? "text-blue-400" : "text-blue-700"
+        }`}
+      >
+        Manage Staff
+      </h1>
+
+      <div
+        className={`overflow-x-auto rounded-xl shadow border ${
+          dark ? "bg-[#111] border-[#333]" : "bg-white border-gray-200"
+        }`}
+      >
+        <table className="table w-full">
+          <thead
+            className={`text-sm ${
+              dark ? "bg-[#1d1d1d] text-gray-300" : "bg-gray-100"
+            }`}
+          >
             <tr>
               <th>Name</th>
               <th>Email</th>
               <th>Status</th>
-              <th>Action</th>
+              <th className="text-center">Action</th>
             </tr>
           </thead>
 
@@ -66,7 +104,7 @@ const ManageStaff = () => {
 
                 <td>
                   <span
-                    className={`badge ${
+                    className={`badge capitalize ${
                       staff.status === "active"
                         ? "badge-success"
                         : "badge-error"
@@ -76,10 +114,10 @@ const ManageStaff = () => {
                   </span>
                 </td>
 
-                <td>
+                <td className="text-center">
                   <button
                     onClick={() => toggleStatus(staff)}
-                    className={`btn btn-xs ${
+                    className={`btn btn-xs rounded-md ${
                       staff.status === "active"
                         ? "btn-error"
                         : "btn-success"
@@ -93,8 +131,8 @@ const ManageStaff = () => {
 
             {staffs.length === 0 && (
               <tr>
-                <td colSpan="4" className="text-center py-6 text-gray-500">
-                  No staff found
+                <td colSpan="4" className="text-center py-6 opacity-60">
+                  No staff found.
                 </td>
               </tr>
             )}
@@ -105,4 +143,4 @@ const ManageStaff = () => {
   );
 };
 
-export default ManageStaff;
+export default AssignStaff;

@@ -24,7 +24,7 @@ const IssueDetails = () => {
 
   const loadIssue = async () => {
     try {
-      const res = await axios.get(`http://localhost:5000/issues/${id}`);
+      const res = await axios.get(`${import.meta.env.VITE_API_BASE}/issues/${id}`);
       setIssue(res.data);
     } catch {
       Swal.fire("Error", "Failed to load issue", "error");
@@ -44,7 +44,7 @@ const IssueDetails = () => {
     }
 
     const res = await axios.patch(
-      `http://localhost:5000/issues/upvote/${id}`,
+      `${import.meta.env.VITE_API_BASE}/issues/upvote/${id}`,
       { email }
     );
 
@@ -77,7 +77,7 @@ const IssueDetails = () => {
 
     if (!ok.isConfirmed) return;
 
-    await axios.patch(`http://localhost:5000/issues/boost/${id}`, {
+    await axios.patch(`${import.meta.env.VITE_API_BASE}/issues/boost/${id}`, {
       email,
       amount: 100,
     });
@@ -90,7 +90,7 @@ const IssueDetails = () => {
       STATUS UPDATE (Admin/Staff)
   ======================= */
   const updateStatus = async (status) => {
-    await axios.patch(`http://localhost:5000/issues/status/${id}`, {
+    await axios.patch(`${import.meta.env.VITE_API_BASE}/issues/status/${id}`, {
       status,
       by: email,
     });
@@ -112,7 +112,7 @@ const IssueDetails = () => {
 
     if (!ok.isConfirmed) return;
 
-    await axios.delete(`http://localhost:5000/issues/${id}`);
+    await axios.delete(`${import.meta.env.VITE_API_BASE}/issues/${id}`);
     Swal.fire("Deleted!", "Issue removed", "success");
     navigate("/dashboard/my-issues");
   };

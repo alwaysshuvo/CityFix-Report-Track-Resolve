@@ -18,7 +18,7 @@ const useRole = () => {
     const fetchRole = async () => {
       try {
         const res = await axios.get(
-          `http://localhost:5000/users/${user.email}`
+          `${import.meta.env.VITE_API_BASE}/users/${user.email}`
         );
         setRole(res.data?.role || "citizen");
       } catch (error) {

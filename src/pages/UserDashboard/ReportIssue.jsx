@@ -51,7 +51,7 @@ const ReportIssue = () => {
 
     try {
       setLoading(true);
-      const res = await axios.post("http://localhost:5000/issues", newIssue);
+      const res = await axios.post("${import.meta.env.VITE_API_BASE}/issues", newIssue);
 
       if (res.data.insertedId) {
         Swal.fire({

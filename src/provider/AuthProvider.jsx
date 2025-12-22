@@ -18,14 +18,20 @@ const AuthProvider = ({ children }) => {
   const [role, setRole] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  /** Save user into DB safely */
   const saveUserToDB = async (userInfo) => {
-    await fetch("http://localhost:5000/users", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(userInfo),
-    });
+    try {
+      await fetch(`${import.meta.env.VITE_API_BASE}/users`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(userInfo),
+      });
+    } catch (err) {
+      console.log("DB save failed:", err);
+    }
   };
 
+  /** Register user */
   const createUser = async (email, password, name) => {
     setLoading(true);
     const result = await createUserWithEmailAndPassword(auth, email, password);
@@ -39,11 +45,13 @@ const AuthProvider = ({ children }) => {
     return result;
   };
 
+  /** Login user */
   const loginUser = (email, password) => {
     setLoading(true);
     return signInWithEmailAndPassword(auth, email, password);
   };
 
+  /** Google Login */
   const googleLogin = async () => {
     setLoading(true);
     const result = await signInWithPopup(auth, googleProvider);
@@ -57,34 +65,41 @@ const AuthProvider = ({ children }) => {
     return result;
   };
 
+  /** Logout */
   const logoutUser = () => {
     setLoading(true);
     return signOut(auth);
   };
 
+  /** Monitor Auth State */
   useEffect(() => {
-  const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-    setUser(currentUser);
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setUser(currentUser);
 
-    if (currentUser?.email) {
-      try {
-        const res = await fetch(`http://localhost:5000/users/${currentUser.email}`);
-        const data = await res.json();
-        setRole(data?.role || "citizen");
-      } catch (err) {
-        console.log("User role fetch failed", err);
-        setRole("citizen");
+      if (currentUser?.email) {
+        try {
+          const res = await fetch(
+            `${import.meta.env.VITE_API_BASE}/users/${currentUser.email}`
+          );
+          if (!res.ok) {
+            setRole("citizen");
+          } else {
+            const data = await res.json();
+            setRole(data?.role || "citizen");
+          }
+        } catch (err) {
+          console.log("Role fetch failed:", err);
+          setRole("citizen");
+        }
+      } else {
+        setRole(null);
       }
-    } else {
-      setRole(null);
-    }
 
-    setLoading(false);
-  });
+      setLoading(false);
+    });
 
-  return () => unsubscribe();
-}, []);
-
+    return () => unsubscribe();
+  }, []);
 
   const authInfo = {
     user,

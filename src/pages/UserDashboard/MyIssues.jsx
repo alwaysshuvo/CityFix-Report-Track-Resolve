@@ -21,7 +21,7 @@ const MyIssues = () => {
     try {
       setLoading(true);
       const res = await axios.get(
-        `http://localhost:5000/issues/user/${user.email}`
+        `${import.meta.env.VITE_API_BASE}/issues/user/${user.email}`
       );
       setIssues(res.data || []);
     } catch (err) {

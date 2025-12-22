@@ -8,7 +8,7 @@ const AssignStaffModal = ({ open, onClose, onAssign }) => {
 
   useEffect(() => {
     if (open) {
-      axios.get("http://localhost:5000/staff").then((res) => {
+      axios.get(`${import.meta.env.VITE_API_BASE}/staff`).then((res) => {
         setStaffs(res.data);
       });
     }

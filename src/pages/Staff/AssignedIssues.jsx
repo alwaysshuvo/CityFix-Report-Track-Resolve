@@ -3,24 +3,24 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import { AuthContext } from "../../provider/AuthProvider";
 import { useNavigate } from "react-router-dom";
+import { ThemeContext } from "../../provider/ThemeContext";
 
 const AssignedIssues = () => {
   const { user } = useContext(AuthContext);
+  const { dark } = useContext(ThemeContext);
   const navigate = useNavigate();
 
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user?.email) {
-      fetchIssues();
-    }
+    if (user?.email) fetchIssues();
   }, [user]);
 
   const fetchIssues = async () => {
     try {
       const res = await axios.get(
-        `http://localhost:5000/issues/staff/${user.email}`
+        `${import.meta.env.VITE_API_BASE}/issues/staff/${user.email}`
       );
       setIssues(res.data);
     } catch {
@@ -32,10 +32,13 @@ const AssignedIssues = () => {
 
   const updateStatus = async (id, newStatus) => {
     try {
-      await axios.patch(`http://localhost:5000/issues/status/${id}`, {
-        status: newStatus,
-        by: user.email,
-      });
+      await axios.patch(
+        `${import.meta.env.VITE_API_BASE}/issues/status/${id}`,
+        {
+          status: newStatus,
+          by: user.email,
+        }
+      );
 
       Swal.fire({
         icon: "success",
@@ -45,8 +48,7 @@ const AssignedIssues = () => {
       });
 
       fetchIssues();
-    } catch (error) {
-      console.log(error);
+    } catch {
       Swal.fire("Error", "Status update failed", "error");
     }
   };
@@ -60,28 +62,64 @@ const AssignedIssues = () => {
   }
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-6">Assigned Issues</h1>
+    <div
+      className={`transition-all duration-300 p-4 md:p-8 min-h-screen ${
+        dark ? "bg-[#0B0B0B] text-white" : "bg-white text-gray-900"
+      }`}
+    >
+      <h1
+        className={`text-3xl md:text-4xl font-bold mb-10 ${
+          dark ? "text-indigo-400" : "text-indigo-700"
+        }`}
+      >
+        Assigned Issues
+      </h1>
 
-      <div className="overflow-x-auto bg-base-100 rounded-xl shadow border">
-        <table className="table table-zebra">
-          <thead className="bg-base-200">
+      <div
+        className={`overflow-x-auto rounded-xl shadow border ${
+          dark ? "bg-[#111] border-[#333]" : "bg-white border-gray-200"
+        }`}
+      >
+        <table className="table w-full">
+          <thead
+            className={`text-sm ${
+              dark ? "bg-[#1e1e1e] text-gray-300" : "bg-gray-100 text-gray-600"
+            }`}
+          >
             <tr>
               <th>Title</th>
               <th>Status</th>
               <th>Priority</th>
-              <th>Action</th>
+              <th className="text-center">Action</th>
             </tr>
           </thead>
 
-          <tbody>
-            {issues.map((issue) => (
-              <tr key={issue._id}>
+          <tbody
+            className={`${
+              dark ? "divide-y divide-[#333]" : "divide-y divide-gray-200"
+            }`}
+          >
+            {issues.map((issue, index) => (
+              <tr
+                key={issue._id}
+                className={`
+                  transition
+                  ${
+                    dark
+                      ? index % 2 === 0
+                        ? "bg-[#0F0F0F]"
+                        : "bg-[#151515]"
+                      : index % 2 === 0
+                      ? "bg-white"
+                      : "bg-gray-50"
+                  }
+                `}
+              >
                 <td className="font-medium">{issue.title}</td>
 
                 <td>
                   <span
-                    className={`badge badge-lg ${
+                    className={`badge badge-md capitalize ${
                       issue.status === "pending"
                         ? "badge-warning"
                         : issue.status === "in-progress"
@@ -95,7 +133,7 @@ const AssignedIssues = () => {
 
                 <td>
                   <span
-                    className={`badge ${
+                    className={`badge capitalize ${
                       issue.priority === "high"
                         ? "badge-error"
                         : issue.priority === "medium"
@@ -107,29 +145,30 @@ const AssignedIssues = () => {
                   </span>
                 </td>
 
-                <td className="flex gap-2">
-                  {/* VIEW DETAILS */}
+                <td className="flex flex-wrap gap-2 justify-center">
                   <button
-                    onClick={() => navigate(`/staff/issue/${issue._id}`)}
-                    className="btn btn-xs btn-primary"
+                    onClick={() => navigate(`/issue/${issue._id}`)}
+                    className={`btn btn-xs rounded-md ${
+                      dark
+                        ? "bg-indigo-600 hover:bg-indigo-700 text-white"
+                        : "btn-primary"
+                    }`}
                   >
                     View
                   </button>
 
-                  {/* START */}
                   {issue.status === "pending" && (
                     <button
-                      className="btn btn-xs btn-info"
+                      className="btn btn-xs btn-info rounded-md"
                       onClick={() => updateStatus(issue._id, "in-progress")}
                     >
                       Start
                     </button>
                   )}
 
-                  {/* RESOLVE */}
                   {issue.status === "in-progress" && (
                     <button
-                      className="btn btn-xs btn-success"
+                      className="btn btn-xs btn-success rounded-md"
                       onClick={() => updateStatus(issue._id, "resolved")}
                     >
                       Resolve
@@ -141,7 +180,7 @@ const AssignedIssues = () => {
 
             {issues.length === 0 && (
               <tr>
-                <td colSpan="4" className="text-center py-6 text-gray-500">
+                <td colSpan="4" className="text-center py-8 opacity-60">
                   No assigned issues
                 </td>
               </tr>

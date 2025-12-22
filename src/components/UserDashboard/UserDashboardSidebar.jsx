@@ -13,62 +13,55 @@ import Swal from "sweetalert2";
 
 const UserDashboardSidebar = () => {
   const { dark } = useContext(ThemeContext);
- const { logoutUser } = useContext(AuthContext);
-
+  const { logoutUser } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const handleLogout = () => {
     Swal.fire({
-      title: "Are you sure?",
-      text: "You will be logged out from your account!",
+      title: "Logout?",
+      text: "You will be logged out of your account.",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#d33",
       cancelButtonColor: "#3085d6",
       confirmButtonText: "Logout",
-    }).then(async (result) => {
-      if (result.isConfirmed) {
+    }).then(async (r) => {
+      if (r.isConfirmed) {
         await logoutUser();
         navigate("/login");
-        Swal.fire("Logged Out!", "You have been logged out.", "success");
+        Swal.fire("Logged Out!", "", "success");
       }
     });
   };
 
   const linkClass = ({ isActive }) =>
     isActive
-      ? `
-        flex items-center gap-3 px-4 py-3 rounded-lg
-        bg-primary text-white font-semibold
-      `
-      : `
-        flex items-center gap-3 px-4 py-3 rounded-lg transition
+      ? `flex items-center gap-3 px-4 py-3 rounded-lg bg-primary text-white font-semibold shadow-md`
+      : `flex items-center gap-3 px-4 py-3 rounded-lg transition-all
         ${
           dark
-            ? "text-gray-300 hover:bg-[#222]"
-            : "text-gray-700 hover:bg-gray-200"
+            ? "text-gray-300 hover:bg-[#1e1e1e] hover:text-white"
+            : "text-gray-700 hover:bg-gray-100"
         }
       `;
 
   return (
     <aside
       className={`
-        w-64 p-5 hidden md:block transition-all duration-300 shadow-lg
+        w-64 hidden md:flex flex-col p-6 transition-all duration-300
         ${
           dark
-            ? "bg-[#0B0B0B] text-white shadow-none border-r border-[#222]"
-            : "bg-white text-gray-900"
+            ? "bg-[#0e0e0e] text-gray-200 border-r border-[#222]"
+            : "bg-white text-gray-900 border-r border-gray-200"
         }
       `}
     >
-      <h2 className="text-2xl font-extrabold mb-8 text-primary">CityFix</h2>
+      <div className="flex items-center gap-2 mb-10">
+        <img src="/logo.png" alt="logo" className="w-9 h-9" />
+        <h2 className="text-2xl font-extrabold text-primary">CityFix</h2>
+      </div>
 
-      <nav
-        className={`
-          space-y-2 font-medium
-          ${dark ? "text-gray-300" : "text-gray-700"}
-        `}
-      >
+      <nav className="space-y-2 font-medium">
         <NavLink to="/dashboard" end className={linkClass}>
           <LayoutDashboard size={20} /> Dashboard
         </NavLink>
@@ -88,11 +81,11 @@ const UserDashboardSidebar = () => {
         <button
           onClick={handleLogout}
           className={`
-            flex items-center gap-3 px-4 py-3 rounded-lg w-full font-semibold
-            transition
+            flex items-center gap-3 px-4 py-3 rounded-lg mt-4 font-semibold
+            transition-all
             ${
               dark
-                ? "text-red-400 hover:bg-[#220000]"
+                ? "text-red-400 hover:bg-[#330000] hover:text-red-300"
                 : "text-red-600 hover:bg-red-50"
             }
           `}

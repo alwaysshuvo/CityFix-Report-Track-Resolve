@@ -1,8 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
+import { ThemeContext } from "../../provider/ThemeContext";
+import { motion } from "framer-motion";
 
 const ManageUsers = () => {
+  const { dark } = useContext(ThemeContext);
+
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -12,9 +16,15 @@ const ManageUsers = () => {
 
   const fetchUsers = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/admin/users");
-      setUsers(res.data);
-    } catch {
+      const res = await axios.get(`${import.meta.env.VITE_API_BASE}/admin/users`);
+
+      const list = Array.isArray(res.data)
+        ? res.data
+        : res.data?.users || [];
+
+      setUsers(list);
+    } catch (err) {
+      console.log(err);
       Swal.fire("Error", "Failed to load users", "error");
     } finally {
       setLoading(false);
@@ -23,7 +33,7 @@ const ManageUsers = () => {
 
   const changeRole = async (id, role) => {
     await axios.patch(
-      `http://localhost:5000/admin/users/role/${id}`,
+      `${import.meta.env.VITE_API_BASE}/admin/users/role/${id}`,
       { role }
     );
     fetchUsers();
@@ -37,14 +47,25 @@ const ManageUsers = () => {
       text: `This user will be ${newStatus}`,
       icon: "warning",
       showCancelButton: true,
+      background: dark ? "#1a1a1a" : "#fff",
+      color: dark ? "#fff" : "#000",
     });
 
     if (!confirm.isConfirmed) return;
 
     await axios.patch(
-      `http://localhost:5000/admin/users/status/${user._id}`,
+      `${import.meta.env.VITE_API_BASE}/admin/users/status/${user._id}`,
       { status: newStatus }
     );
+
+    Swal.fire({
+      icon: "success",
+      title: "Updated",
+      timer: 1200,
+      showConfirmButton: false,
+      background: dark ? "#1a1a1a" : "#fff",
+      color: dark ? "#fff" : "#000",
+    });
 
     fetchUsers();
   };
@@ -58,34 +79,78 @@ const ManageUsers = () => {
   }
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-6">Manage Users</h1>
+    <div
+      className={`p-4 sm:p-6 md:p-10 transition-all min-h-screen ${
+        dark ? "bg-[#0b0b0b] text-white" : "bg-gray-50 text-gray-900"
+      }`}
+    >
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
+      >
+        <h1
+          className={`text-2xl sm:text-3xl font-bold ${
+            dark ? "text-blue-300" : "text-indigo-600"
+          }`}
+        >
+          Manage Users
+        </h1>
+        <p
+          className={`text-sm sm:text-base px-4 py-1 rounded-full border ${
+            dark ? "border-gray-600 text-gray-300" : "border-gray-300 text-gray-700"
+          }`}
+        >
+          Total Users: <span className="font-semibold">{users.length}</span>
+        </p>
+      </motion.div>
 
-      <div className="overflow-x-auto bg-base-100 rounded-xl shadow border">
-        <table className="table table-zebra">
-          <thead className="bg-base-200">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className={`overflow-x-auto rounded-xl shadow border ${
+          dark ? "bg-[#111] border-[#333]" : "bg-white border-gray-200"
+        }`}
+      >
+        <table
+          className={`table w-full text-sm sm:text-base ${
+            dark ? "text-gray-300" : "text-gray-800"
+          }`}
+        >
+          <thead
+            className={`text-xs sm:text-sm uppercase tracking-wide ${
+              dark ? "bg-[#1a1a1a] text-gray-300" : "bg-gray-100 text-gray-600"
+            }`}
+          >
             <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Role</th>
-              <th>Status</th>
-              <th>Action</th>
+              <th className="px-3 py-3">Name</th>
+              <th className="px-3 py-3">Email</th>
+              <th className="px-3 py-3">Role</th>
+              <th className="px-3 py-3">Status</th>
+              <th className="px-3 py-3 text-center">Action</th>
             </tr>
           </thead>
 
           <tbody>
             {users.map((user) => (
-              <tr key={user._id}>
-                <td>{user.name || "N/A"}</td>
-                <td>{user.email}</td>
+              <tr
+                key={user._id}
+                className={`${dark ? "hover:bg-[#1b1b1b]" : "hover:bg-gray-50"}`}
+              >
+                <td className="px-3 py-3 font-medium whitespace-nowrap">
+                  {user.name || "N/A"}
+                </td>
+                <td className="px-3 py-3 break-all">{user.email}</td>
 
-                <td>
+                <td className="px-3 py-3">
                   <select
                     value={user.role}
-                    onChange={(e) =>
-                      changeRole(user._id, e.target.value)
-                    }
-                    className="select select-xs"
+                    onChange={(e) => changeRole(user._id, e.target.value)}
+                    className={`select select-xs sm:select-sm rounded-md ${
+                      dark
+                        ? "bg-[#222] border-[#444] text-white"
+                        : "bg-white border-gray-300"
+                    }`}
                   >
                     <option value="citizen">Citizen</option>
                     <option value="staff">Staff</option>
@@ -93,9 +158,9 @@ const ManageUsers = () => {
                   </select>
                 </td>
 
-                <td>
+                <td className="px-3 py-3">
                   <span
-                    className={`badge ${
+                    className={`badge capitalize ${
                       user.status === "blocked"
                         ? "badge-error"
                         : "badge-success"
@@ -105,10 +170,18 @@ const ManageUsers = () => {
                   </span>
                 </td>
 
-                <td>
+                <td className="px-3 py-3 text-center">
                   <button
                     onClick={() => toggleStatus(user)}
-                    className="btn btn-xs btn-outline"
+                    className={`btn btn-xs sm:btn-sm rounded-md font-semibold ${
+                      user.status === "blocked"
+                        ? dark
+                          ? "bg-green-600 hover:bg-green-700 text-white"
+                          : "btn-success"
+                        : dark
+                        ? "bg-red-600 hover:bg-red-700 text-white"
+                        : "btn-error"
+                    }`}
                   >
                     {user.status === "blocked" ? "Unblock" : "Block"}
                   </button>
@@ -118,14 +191,14 @@ const ManageUsers = () => {
 
             {users.length === 0 && (
               <tr>
-                <td colSpan="5" className="text-center py-6 text-gray-500">
-                  No users found
+                <td colSpan="5" className="py-10 text-center opacity-60">
+                  No users found.
                 </td>
               </tr>
             )}
           </tbody>
         </table>
-      </div>
+      </motion.div>
     </div>
   );
 };

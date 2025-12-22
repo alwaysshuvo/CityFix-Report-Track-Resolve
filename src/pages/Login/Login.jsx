@@ -31,7 +31,7 @@ const Login = () => {
   }, [role, roleLoading, navigate]);
 
   const getJwtToken = async (email) => {
-    const res = await axios.post("http://localhost:5000/jwt", { email });
+    const res = await axios.post("${import.meta.env.VITE_API_BASE}/jwt", { email });
     localStorage.setItem("access-token", res.data.token);
   };
 
@@ -43,7 +43,7 @@ const Login = () => {
     try {
       const result = await signInWithEmailAndPassword(auth, email, password);
 
-      const res = await fetch("http://localhost:5000/jwt", {
+      const res = await fetch("${import.meta.env.VITE_API_BASE}/jwt", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ email: result.user.email }),
@@ -64,7 +64,7 @@ const Login = () => {
     try {
       const result = await signInWithPopup(auth, provider);
 
-      await axios.post("http://localhost:5000/users", {
+      await axios.post("${import.meta.env.VITE_API_BASE}/users", {
         name: result.user.displayName,
         email: result.user.email,
         photo: result.user.photoURL,

@@ -18,7 +18,7 @@ const ManageIssues = () => {
   const fetchIssues = async () => {
     try {
       setLoading(true);
-      const res = await axios.get("http://localhost:5000/issues");
+      const res = await axios.get("${import.meta.env.VITE_API_BASE}/issues");
       setIssues(res.data.issues || []); // 🔥 main fix
     } catch (err) {
       Swal.fire("Error", "Failed to load issues", "error");
@@ -39,7 +39,7 @@ const ManageIssues = () => {
 
     try {
       await axios.patch(
-        `http://localhost:5000/issues/assign/${selectedIssue._id}`,
+        `${import.meta.env.VITE_API_BASE}/issues/assign/${selectedIssue._id}`,
         staff
       );
 

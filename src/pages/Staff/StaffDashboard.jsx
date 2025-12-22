@@ -7,13 +7,13 @@ const StaffDashboard = () => {
   const { issues, loading, error } = useStaffIssues();
   const { dark } = useContext(ThemeContext);
 
-  // Normalize status values
+  // Normalize status values for calculations
   const completedStatuses = ["resolved", "completed", "done"];
   const progressStatuses = ["in-progress", "working"];
-  
-  const pending = issues.filter(i => i.status === "pending").length;
-  const inProgress = issues.filter(i => progressStatuses.includes(i.status)).length;
-  const resolved = issues.filter(i => completedStatuses.includes(i.status)).length;
+
+  const totalAssigned = issues.length;
+  const inProgress = issues.filter((i) => progressStatuses.includes(i.status)).length;
+  const resolved = issues.filter((i) => completedStatuses.includes(i.status)).length;
 
   if (loading) {
     return (
@@ -28,9 +28,13 @@ const StaffDashboard = () => {
   }
 
   return (
-    <div className={`transition ${dark ? "text-gray-200" : "text-gray-900"}`}>
+    <div
+      className={`transition-all duration-300 p-4 md:p-8 min-h-screen ${
+        dark ? "bg-[#0B0B0B] text-white" : "bg-white text-gray-900"
+      }`}
+    >
       <h1
-        className={`text-3xl font-bold mb-8 ${
+        className={`text-3xl md:text-4xl font-bold mb-10 ${
           dark ? "text-blue-400" : "text-blue-700"
         }`}
       >
@@ -38,21 +42,21 @@ const StaffDashboard = () => {
       </h1>
 
       {/* Stats */}
-      <div className="grid md:grid-cols-3 gap-6 mb-10">
-        <StatCard title="Total Assigned" value={issues.length} />
-        <StatCard title="In Progress" value={inProgress} />
-        <StatCard title="Resolved" value={resolved} />
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+        <StatCard title="Total Assigned" value={totalAssigned} accent="blue" dark={dark} />
+        <StatCard title="In Progress" value={inProgress} accent="yellow" dark={dark} />
+        <StatCard title="Resolved" value={resolved} accent="green" dark={dark} />
       </div>
 
-      {/* Assigned Issues */}
+      {/* Assigned Issues Table */}
       <div
         className={`overflow-x-auto rounded-xl shadow border ${
           dark ? "bg-[#111] border-[#333]" : "bg-white border-gray-200"
         }`}
       >
-        <table className="table">
+        <table className="table w-full">
           <thead
-            className={`${
+            className={`text-sm ${
               dark ? "bg-[#1e1e1e] text-gray-300" : "bg-gray-100 text-gray-600"
             }`}
           >
@@ -61,19 +65,35 @@ const StaffDashboard = () => {
               <th>Category</th>
               <th>Status</th>
               <th>Priority</th>
-              <th>Action</th>
+              <th className="text-center">Action</th>
             </tr>
           </thead>
 
-          <tbody>
-            {issues.map((issue) => (
-              <tr key={issue._id}>
+          <tbody className={`${dark ? "divide-y divide-[#333]" : "divide-y divide-gray-200"}`}>
+            {issues.map((issue, index) => (
+              <tr
+                key={issue._id}
+                className={`transition ${
+                  dark
+                    ? index % 2 === 0
+                      ? "bg-[#0F0F0F]"
+                      : "bg-[#111]"
+                    : index % 2 === 0
+                    ? "bg-white"
+                    : "bg-gray-50"
+                }`}
+              >
                 <td className="font-medium">{issue.title}</td>
-                <td>{issue.category || "N/A"}</td>
+                <td className="capitalize">{issue.category || "N/A"}</td>
+
                 <td>
                   <span
-                    className={`badge badge-outline ${
-                      dark ? "border-gray-500 text-gray-300" : ""
+                    className={`badge capitalize ${
+                      issue.status === "pending"
+                        ? "badge-warning"
+                        : progressStatuses.includes(issue.status)
+                        ? "badge-info"
+                        : "badge-success"
                     }`}
                   >
                     {issue.status}
@@ -82,7 +102,7 @@ const StaffDashboard = () => {
 
                 <td>
                   <span
-                    className={`badge ${
+                    className={`badge capitalize ${
                       issue.priority === "high"
                         ? "badge-error"
                         : issue.priority === "medium"
@@ -94,14 +114,14 @@ const StaffDashboard = () => {
                   </span>
                 </td>
 
-                <td>
+                <td className="text-center">
                   <Link
-                    className={`btn btn-xs ${
+                    to={`/issue/${issue._id}`}
+                    className={`btn btn-xs rounded-md ${
                       dark
                         ? "bg-indigo-600 hover:bg-indigo-700 text-white"
                         : "btn-primary"
                     }`}
-                    to={`/issue/${issue._id}`}
                   >
                     View
                   </Link>
@@ -111,7 +131,7 @@ const StaffDashboard = () => {
 
             {issues.length === 0 && (
               <tr>
-                <td colSpan="5" className="text-center py-6 opacity-60">
+                <td colSpan="5" className="text-center py-8 opacity-60">
                   No assigned issues
                 </td>
               </tr>
@@ -123,10 +143,28 @@ const StaffDashboard = () => {
   );
 };
 
-const StatCard = ({ title, value }) => (
-  <div className="bg-base-200 rounded-xl p-6 shadow">
-    <h3 className="text-sm text-gray-500">{title}</h3>
-    <p className="text-3xl font-bold mt-2">{value}</p>
+const StatCard = ({ title, value, accent, dark }) => (
+  <div
+    className={`
+      rounded-xl p-6 shadow border transition-all duration-300 flex flex-col items-start
+      ${dark ? "bg-[#111] border-[#333]" : "bg-white border-gray-200"}
+    `}
+  >
+    <h3 className={`text-sm ${dark ? "text-gray-400" : "text-gray-500"}`}>
+      {title}
+    </h3>
+
+    <p
+      className={`text-3xl font-bold mt-2 ${
+        accent === "blue"
+          ? "text-blue-500"
+          : accent === "yellow"
+          ? "text-yellow-500"
+          : "text-green-500"
+      }`}
+    >
+      {value}
+    </p>
   </div>
 );
 
