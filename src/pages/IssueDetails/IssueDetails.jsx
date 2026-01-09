@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import useRole from "../../hooks/useRole";
 import { AuthContext } from "../../provider/AuthProvider";
 import { ThemeContext } from "../../provider/ThemeContext";
+import IssueDetailsSkeleton from "../../components/skeletons/IssueDetailsSkeleton";
 
 const IssueDetails = () => {
   const { id } = useParams();
@@ -26,7 +27,9 @@ const IssueDetails = () => {
   } = useQuery({
     queryKey: ["issue", id],
     queryFn: async () => {
-      const res = await axios.get(`${import.meta.env.VITE_API_BASE}/issues/${id}`);
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_BASE}/issues/${id}`
+      );
       return res.data;
     },
   });
@@ -36,9 +39,12 @@ const IssueDetails = () => {
    =========================== */
   const upvoteMutation = useMutation({
     mutationFn: async () => {
-      return axios.patch(`${import.meta.env.VITE_API_BASE}/issues/upvote/${id}`, {
-        email,
-      });
+      return axios.patch(
+        `${import.meta.env.VITE_API_BASE}/issues/upvote/${id}`,
+        {
+          email,
+        }
+      );
     },
     onSuccess: () => {
       Swal.fire("Success", "Upvoted!", "success");
@@ -73,10 +79,13 @@ const IssueDetails = () => {
     if (!confirm.isConfirmed) return;
 
     try {
-      const res = await axios.post(`${import.meta.env.VITE_API_BASE}/issues/boost`, {
-        email,
-        issueId: id,
-      });
+      const res = await axios.post(
+        `${import.meta.env.VITE_API_BASE}/issues/boost`,
+        {
+          email,
+          issueId: id,
+        }
+      );
 
       if (res.data.url) {
         window.location.href = res.data.url;
@@ -138,15 +147,17 @@ const IssueDetails = () => {
     },
   });
 
-  const allowedStatus = ["pending", "in-progress", "working", "resolved", "closed"];
+  const allowedStatus = [
+    "pending",
+    "in-progress",
+    "working",
+    "resolved",
+    "closed",
+  ];
 
   /** UI Loading States */
   if (isLoading) {
-    return (
-      <div className="flex justify-center mt-20">
-        <span className="loading loading-lg" />
-      </div>
-    );
+    return <IssueDetailsSkeleton />;
   }
 
   if (!issue) return <p className="text-center mt-20">Not Found</p>;
@@ -198,7 +209,6 @@ const IssueDetails = () => {
 
       {/* ACTION BUTTONS */}
       <div className="flex flex-wrap gap-2 mt-6">
-
         {/* UPVOTE */}
         <button className="btn btn-primary btn-sm" onClick={handleUpvote}>
           👍 Upvote ({issue.upvotes?.length})

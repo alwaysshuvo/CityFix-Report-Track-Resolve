@@ -1,6 +1,7 @@
-import React, { useEffect, useState, useContext } from "react";
+import { useEffect, useState, useContext } from "react";
 import axios from "axios";
 import IssueCard from "../IssueCard/IssueCard";
+import IssueCardSkeleton from "../../components/skeletons/IssueCardSkeleton";
 import { ThemeContext } from "../../provider/ThemeContext";
 
 const PAGE_SIZE = 6;
@@ -20,6 +21,7 @@ const AllIssues = () => {
 
   useEffect(() => {
     loadIssues();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, search, categoryFilter, statusFilter, priorityFilter]);
 
   const loadIssues = async () => {
@@ -52,14 +54,6 @@ const AllIssues = () => {
     new Set(issues.map((i) => i.category))
   ).filter(Boolean);
 
-  if (loading) {
-    return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <span className="loading loading-spinner loading-lg"></span>
-      </div>
-    );
-  }
-
   return (
     <div className="max-w-7xl mx-auto px-4 py-10">
       <h1
@@ -70,7 +64,7 @@ const AllIssues = () => {
         All Issues
       </h1>
 
-      {/* Filters */}
+      {/* FILTERS */}
       <div className="flex flex-col md:flex-row items-start md:items-center gap-3 mb-6">
         <input
           value={search}
@@ -143,23 +137,31 @@ const AllIssues = () => {
         </select>
       </div>
 
-      {/* Issue Cards */}
+      {/* ISSUE GRID */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {issues.map((issue) => (
-          <IssueCard key={issue._id} issue={issue} />
-        ))}
+        {loading &&
+          Array.from({ length: PAGE_SIZE }).map((_, i) => (
+            <IssueCardSkeleton key={i} />
+          ))}
+
+        {!loading &&
+          issues.map((issue) => (
+            <IssueCard key={issue._id} issue={issue} />
+          ))}
       </div>
 
-      {/* No data */}
-      {issues.length === 0 && (
-        <p className="text-center opacity-60 mt-10">No issues found</p>
+      {/* EMPTY STATE */}
+      {!loading && issues.length === 0 && (
+        <p className="text-center opacity-60 mt-10">
+          No issues found
+        </p>
       )}
 
-      {/* Pagination */}
+      {/* PAGINATION */}
       <div className="flex items-center justify-center gap-3 mt-8">
         <button
           onClick={() => setPage((p) => Math.max(1, p - 1))}
-          disabled={page === 1}
+          disabled={page === 1 || loading}
           className={`px-3 py-1 rounded border disabled:opacity-40 ${
             dark
               ? "border-purple-400/40 hover:bg-[#222]"
@@ -175,7 +177,7 @@ const AllIssues = () => {
 
         <button
           onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-          disabled={page === totalPages}
+          disabled={page === totalPages || loading}
           className={`px-3 py-1 rounded border disabled:opacity-40 ${
             dark
               ? "border-purple-400/40 hover:bg-[#222]"

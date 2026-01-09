@@ -1,8 +1,10 @@
 import { motion } from "framer-motion";
 import { useContext, useEffect, useState } from "react";
+import axios from "axios";
 import { ThemeContext } from "../../provider/ThemeContext";
 import { AuthContext } from "../../provider/AuthProvider";
-import axios from "axios";
+import CitizenProgressChart from "../../components/dashboard/CitizenProgressChart";
+import DashboardStatSkeleton from "../../components/skeletons/DashboardStatSkeleton";
 
 const UserDashboard = () => {
   const { dark } = useContext(ThemeContext);
@@ -27,17 +29,15 @@ const UserDashboard = () => {
           `${import.meta.env.VITE_API_BASE}/issues/user/${user.email}`
         );
 
-        const myIssues = res.data || [];
-
-        const pending = myIssues.filter((i) => i.status === "pending").length;
-        const inProgress = myIssues.filter((i) => i.status === "in-progress").length;
-        const resolved = myIssues.filter((i) => i.status === "resolved").length;
+        const myIssues = Array.isArray(res.data)
+          ? res.data
+          : res.data?.issues || [];
 
         setStats({
           total: myIssues.length,
-          pending,
-          inProgress,
-          resolved,
+          pending: myIssues.filter((i) => i.status === "pending").length,
+          inProgress: myIssues.filter((i) => i.status === "in-progress").length,
+          resolved: myIssues.filter((i) => i.status === "resolved").length,
         });
       } catch (err) {
         console.error("Dashboard stats error", err);
@@ -49,72 +49,101 @@ const UserDashboard = () => {
     fetchStats();
   }, [user]);
 
-  if (loading) {
-    return (
-      <div className="flex justify-center mt-20">
-        <span className="loading loading-spinner loading-lg"></span>
-      </div>
-    );
-  }
-
   return (
     <div
       className={`px-4 py-6 sm:px-6 md:px-10 min-h-screen transition-all ${
-        dark ? "bg-[#111] text-white" : "bg-gray-50 text-gray-900"
+        dark ? "bg-[#0B0B0B] text-white" : "bg-gray-50 text-gray-900"
       }`}
     >
       {/* HEADER */}
       <motion.div
-        initial={{ opacity: 0, y: -15 }}
+        initial={{ opacity: 0, y: -12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="mb-6 sm:mb-10"
+        className="mb-8"
       >
-        <h1 className="text-2xl sm:text-3xl font-extrabold break-words">
+        <h1 className="text-2xl sm:text-3xl font-extrabold">
           Citizen Dashboard
         </h1>
-        <p className="text-xs sm:text-sm text-gray-500 mt-1 break-all">
+        <p className="text-sm opacity-70 mt-1">
           Welcome, {user?.displayName || "Citizen"}
         </p>
       </motion.div>
 
-      {/* STATS GRID */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
-        <StatCard title="Total" value={stats.total} color="from-blue-500 to-blue-600" />
-        <StatCard title="Pending" value={stats.pending} color="from-yellow-400 to-yellow-500" />
-        <StatCard title="In Progress" value={stats.inProgress} color="from-purple-500 to-purple-600" />
-        <StatCard title="Resolved" value={stats.resolved} color="from-green-500 to-green-600" />
+      {/* ======================
+           STATS
+      ====================== */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+        {loading ? (
+          [...Array(4)].map((_, i) => <DashboardStatSkeleton key={i} />)
+        ) : (
+          <>
+            <StatCard title="Total" value={stats.total} type="primary" />
+            <StatCard title="Pending" value={stats.pending} type="warning" />
+            <StatCard
+              title="In Progress"
+              value={stats.inProgress}
+              type="secondary"
+            />
+            <StatCard title="Resolved" value={stats.resolved} type="success" />
+          </>
+        )}
       </div>
 
-      {/* INFO BOX */}
+      {/* ======================
+           CHART
+      ====================== */}
+      {!loading && (
+        <div className="mt-10">
+          <CitizenProgressChart
+            total={stats.total}
+            resolved={stats.resolved}
+            dark={dark}
+          />
+        </div>
+      )}
+
+      {/* ======================
+           INFO
+      ====================== */}
       <div
-        className={`mt-8 sm:mt-12 rounded-xl p-4 sm:p-6 border ${
+        className={`mt-10 rounded-xl p-5 border ${
           dark
-            ? "bg-[#181818] border-gray-700 text-gray-300"
+            ? "bg-[#141414] border-gray-700 text-gray-300"
             : "bg-white border-gray-200 text-gray-700"
         }`}
       >
-        <h2 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3">
-          How it works
-        </h2>
-        <p className="text-xs sm:text-sm leading-relaxed">
-          You can report city issues, track their status, and receive updates
-          when they are resolved. Your reports help improve public services 🚀
+        <h2 className="text-lg font-semibold mb-2">How it works</h2>
+        <p className="text-sm leading-relaxed">
+          Report public issues, track progress, and get notified when they are
+          resolved. Your participation improves city services 🚀
         </p>
       </div>
     </div>
   );
 };
 
-const StatCard = ({ title, value, color }) => {
+/* =========================
+   STAT CARD (THEME BASED)
+========================= */
+const StatCard = ({ title, value, type }) => {
+  const colorMap = {
+    primary: "from-indigo-500 to-indigo-600",
+    secondary: "from-violet-500 to-purple-600",
+    success: "from-emerald-500 to-green-600",
+    warning: "from-amber-400 to-amber-500",
+  };
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 15 }}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`rounded-xl p-3 sm:p-5 text-white bg-gradient-to-r ${color} shadow-lg flex flex-col justify-center`}
+      className={`rounded-xl p-4 sm:p-5 text-white bg-gradient-to-r ${
+        colorMap[type]
+      } shadow-lg`}
     >
-      <p className="text-[10px] sm:text-sm opacity-90">{title}</p>
-      <h2 className="text-xl sm:text-3xl font-extrabold mt-1 sm:mt-2">{value}</h2>
+      <p className="text-xs opacity-90">{title}</p>
+      <h2 className="text-2xl sm:text-3xl font-extrabold mt-1">{value}</h2>
     </motion.div>
   );
 };
