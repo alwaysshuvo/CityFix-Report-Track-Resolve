@@ -2,111 +2,115 @@ import { motion } from "framer-motion";
 import { FaShieldAlt, FaClock, FaThumbsUp } from "react-icons/fa";
 import { useContext } from "react";
 import { ThemeContext } from "../../provider/ThemeContext";
+import { Link } from "react-router-dom";
 
 const ExtraOne = () => {
   const { dark } = useContext(ThemeContext);
 
   return (
-    <section className="max-w-7xl mx-auto px-4 mt-20 transition-all duration-300">
+    <section className="relative max-w-7xl mx-auto px-4 pt-32">
       <motion.div
-        initial={{ opacity: 0, y: 50 }}
+        initial={{ opacity: 0, y: 60 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        transition={{ duration: 0.7 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
         className={`
-          relative rounded-3xl p-12 text-center shadow-xl overflow-hidden
+          relative overflow-hidden rounded-3xl px-10 py-16 md:px-16 text-center
+          border transition-colors duration-300
           ${
             dark
-              ? "bg-gradient-to-r from-[#0B0B0B] to-[#171717] text-white"
-              : "bg-gradient-to-r from-blue-600 to-indigo-600 text-white"
+              ? "bg-gradient-to-br from-[#0b0d16] via-[#0f111d] to-[#15182a] text-white border-white/10 shadow-[0_0_40px_rgba(99,102,241,0.25)]"
+              : "bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 text-white shadow-2xl"
           }
         `}
       >
-        {/* Glow Blobs */}
-        <div className="absolute inset-0 opacity-20 pointer-events-none">
-          <div className="w-40 h-40 bg-white rounded-full blur-3xl absolute -top-10 -left-10" />
-          <div className="w-56 h-56 bg-purple-300 rounded-full blur-3xl absolute -bottom-10 -right-10" />
+        {/* Ambient Glow */}
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute -top-24 -left-24 w-72 h-72 bg-indigo-500/30 rounded-full blur-3xl" />
+          <div className="absolute -bottom-24 -right-24 w-72 h-72 bg-purple-500/30 rounded-full blur-3xl" />
         </div>
 
-        {/* Title */}
-        <h2 className="relative text-3xl md:text-4xl font-extrabold mb-5 z-10">
-          Why Choose CityFix?
-        </h2>
+        {/* CONTENT */}
+        <div className="relative z-10">
+          {/* Eyebrow */}
+          <span className="inline-block text-sm font-semibold uppercase tracking-wide text-white/80">
+            Built for Smart Cities
+          </span>
 
-        {/* Description */}
-        <p
-          className={`
-            relative max-w-2xl mx-auto text-lg leading-relaxed z-10 opacity-95
-            ${dark ? "text-gray-300" : "text-white"}
-          `}
-        >
-          CityFix delivers transparency, fast public-service responses, and structured tracking.  
-          Citizens, Staff, and Admin — all benefit from a powerful workflow.
-        </p>
+          {/* TITLE */}
+          <h2 className="mt-3 text-3xl md:text-4xl font-extrabold tracking-tight">
+            Why Choose{" "}
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-white to-white/80">
+              CityFix
+            </span>
+            ?
+          </h2>
 
-        {/* Benefit Pills */}
-        <div className="relative flex flex-wrap justify-center gap-6 mt-8 z-10">
-          <div
+          {/* DESCRIPTION */}
+          <p
             className={`
-              flex items-center gap-2 px-5 py-3 rounded-xl backdrop-blur-md text-sm
-              ${
-                dark
-                  ? "bg-white/10 text-gray-200"
-                  : "bg-white/20 text-white"
-              }
+              mt-5 max-w-2xl mx-auto text-lg leading-relaxed
+              ${dark ? "text-gray-300" : "text-white/90"}
             `}
           >
-            <FaShieldAlt className="text-xl" /> Transparent
+            CityFix ensures transparency, faster public-service responses, and
+            structured issue tracking — bringing citizens, staff, and
+            administrators together on one powerful platform.
+          </p>
+
+          {/* BENEFITS */}
+          <div className="flex flex-wrap justify-center gap-5 mt-10">
+            {[
+              { icon: <FaShieldAlt />, label: "Transparent System" },
+              { icon: <FaClock />, label: "Fast Response" },
+              { icon: <FaThumbsUp />, label: "Citizen Friendly" },
+            ].map((b, i) => (
+              <motion.div
+                key={i}
+                whileHover={{ scale: 1.08, y: -2 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                className={`
+                  flex items-center gap-2 px-5 py-3 rounded-full
+                  text-sm font-semibold backdrop-blur
+                  border transition
+                  ${
+                    dark
+                      ? "bg-white/10 text-gray-200 border-white/10"
+                      : "bg-white/20 text-white border-white/20"
+                  }
+                `}
+              >
+                <span className="text-lg">{b.icon}</span>
+                {b.label}
+              </motion.div>
+            ))}
           </div>
 
-          <div
-            className={`
-              flex items-center gap-2 px-5 py-3 rounded-xl backdrop-blur-md text-sm
-              ${
-                dark
-                  ? "bg-white/10 text-gray-200"
-                  : "bg-white/20 text-white"
-              }
-            `}
+          {/* CTA */}
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.5 }}
+            className="mt-14"
           >
-            <FaClock className="text-xl" /> Fast Response
-          </div>
-
-          <div
-            className={`
-              flex items-center gap-2 px-5 py-3 rounded-xl backdrop-blur-md text-sm
-              ${
-                dark
-                  ? "bg-white/10 text-gray-200"
-                  : "bg-white/20 text-white"
-              }
-            `}
-          >
-            <FaThumbsUp className="text-xl" /> Citizen Friendly
-          </div>
+            <Link
+              to="/all-issues"
+              className={`
+                inline-flex items-center gap-2
+                px-9 py-3 rounded-xl font-semibold tracking-wide
+                transition shadow-lg
+                ${
+                  dark
+                    ? "bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-indigo-500/30 hover:opacity-90"
+                    : "bg-white text-indigo-700 hover:bg-indigo-50"
+                }
+              `}
+            >
+              Explore Features →
+            </Link>
+          </motion.div>
         </div>
-
-        {/* CTA Button */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.6 }}
-          className="mt-10"
-        >
-          <button
-            className={`
-              font-semibold px-8 py-3 rounded-xl shadow transition
-              ${
-                dark
-                  ? "bg-purple-600 text-white hover:bg-purple-700"
-                  : "bg-white text-indigo-700 hover:bg-gray-100"
-              }
-            `}
-          >
-            Explore Features →
-          </button>
-        </motion.div>
       </motion.div>
     </section>
   );

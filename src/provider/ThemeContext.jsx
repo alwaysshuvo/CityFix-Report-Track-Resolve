@@ -8,11 +8,20 @@ export const ThemeProvider = ({ children }) => {
   });
 
   useEffect(() => {
+    const root = document.documentElement;
+
     if (dark) {
-      document.documentElement.classList.add("dark");
+      // Tailwind dark mode
+      root.classList.add("dark");
+
+      // CSS variable theme
+      root.setAttribute("data-theme", "dark");
+
       localStorage.setItem("theme", "dark");
     } else {
-      document.documentElement.classList.remove("dark");
+      root.classList.remove("dark");
+      root.setAttribute("data-theme", "light");
+
       localStorage.setItem("theme", "light");
     }
   }, [dark]);

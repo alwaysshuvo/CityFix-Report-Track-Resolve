@@ -3,6 +3,7 @@ import axios from "axios";
 import IssueCard from "../IssueCard/IssueCard";
 import IssueCardSkeleton from "../../components/skeletons/IssueCardSkeleton";
 import { ThemeContext } from "../../provider/ThemeContext";
+import { FiSearch } from "react-icons/fi";
 
 const PAGE_SIZE = 6;
 
@@ -27,7 +28,6 @@ const AllIssues = () => {
   const loadIssues = async () => {
     try {
       setLoading(true);
-
       const res = await axios.get(`${import.meta.env.VITE_API_BASE}/issues`, {
         params: {
           page,
@@ -55,42 +55,64 @@ const AllIssues = () => {
   ).filter(Boolean);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-10">
+    <section className="max-w-7xl mx-auto px-4 py-12">
+      {/* TITLE */}
       <h1
-        className={`text-3xl font-bold mb-6 ${
-          dark ? "text-white" : "text-black"
+        className={`text-3xl md:text-4xl font-extrabold mb-8 ${
+          dark ? "text-white" : "text-gray-800"
         }`}
       >
         All Issues
       </h1>
 
-      {/* FILTERS */}
-      <div className="flex flex-col md:flex-row items-start md:items-center gap-3 mb-6">
-        <input
-          value={search}
-          onChange={(e) => {
-            setPage(1);
-            setSearch(e.target.value);
-          }}
-          placeholder="Search by title, category or location..."
-          className={`flex-1 px-3 py-2 rounded-md border ${
+      {/* FILTER BAR */}
+      <div
+        className={`mb-8 rounded-2xl p-4 md:p-5 grid gap-3 md:grid-cols-5 border shadow-sm
+          ${
             dark
-              ? "bg-[#111] border-purple-400/30 text-white placeholder-gray-400"
-              : "bg-white border-gray-300 text-black"
-          }`}
-        />
+              ? "bg-[#111] border-purple-500/20"
+              : "bg-white border-gray-200"
+          }
+        `}
+      >
+        {/* SEARCH */}
+        <div className="md:col-span-2 relative">
+          <FiSearch
+            className={`absolute left-3 top-1/2 -translate-y-1/2 text-lg ${
+              dark ? "text-gray-400" : "text-gray-500"
+            }`}
+          />
+          <input
+            value={search}
+            onChange={(e) => {
+              setPage(1);
+              setSearch(e.target.value);
+            }}
+            placeholder="Search issues..."
+            className={`w-full pl-10 pr-3 py-2 rounded-xl outline-none border transition
+              ${
+                dark
+                  ? "bg-[#1a1a1a] border-purple-400/30 text-white placeholder-gray-400 focus:border-purple-500"
+                  : "bg-white border-gray-300 focus:ring-2 focus:ring-indigo-400"
+              }
+            `}
+          />
+        </div>
 
+        {/* CATEGORY */}
         <select
           value={categoryFilter}
           onChange={(e) => {
             setPage(1);
             setCategoryFilter(e.target.value);
           }}
-          className={`px-3 py-2 rounded-md border ${
-            dark
-              ? "bg-[#111] border-purple-400/30 text-white"
-              : "bg-white border-gray-300"
-          }`}
+          className={`px-3 py-2 rounded-xl border outline-none transition
+            ${
+              dark
+                ? "bg-[#1a1a1a] border-purple-400/30 text-white"
+                : "bg-white border-gray-300"
+            }
+          `}
         >
           <option value="">All Categories</option>
           {uniqueCategories.map((c) => (
@@ -100,45 +122,51 @@ const AllIssues = () => {
           ))}
         </select>
 
+        {/* STATUS */}
         <select
           value={statusFilter}
           onChange={(e) => {
             setPage(1);
             setStatusFilter(e.target.value);
           }}
-          className={`px-3 py-2 rounded-md border ${
-            dark
-              ? "bg-[#111] border-purple-400/30 text-white"
-              : "bg-white border-gray-300"
-          }`}
+          className={`px-3 py-2 rounded-xl border outline-none transition
+            ${
+              dark
+                ? "bg-[#1a1a1a] border-purple-400/30 text-white"
+                : "bg-white border-gray-300"
+            }
+          `}
         >
           <option value="">All Status</option>
-          <option value="pending">pending</option>
-          <option value="in-progress">in-progress</option>
-          <option value="resolved">resolved</option>
+          <option value="pending">Pending</option>
+          <option value="in-progress">In Progress</option>
+          <option value="resolved">Resolved</option>
         </select>
 
+        {/* PRIORITY */}
         <select
           value={priorityFilter}
           onChange={(e) => {
             setPage(1);
             setPriorityFilter(e.target.value);
           }}
-          className={`px-3 py-2 rounded-md border ${
-            dark
-              ? "bg-[#111] border-purple-400/30 text-white"
-              : "bg-white border-gray-300"
-          }`}
+          className={`px-3 py-2 rounded-xl border outline-none transition
+            ${
+              dark
+                ? "bg-[#1a1a1a] border-purple-400/30 text-white"
+                : "bg-white border-gray-300"
+            }
+          `}
         >
           <option value="">All Priority</option>
-          <option value="normal">normal</option>
-          <option value="medium">medium</option>
-          <option value="high">high</option>
+          <option value="normal">Normal</option>
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
         </select>
       </div>
 
-      {/* ISSUE GRID */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* GRID */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {loading &&
           Array.from({ length: PAGE_SIZE }).map((_, i) => (
             <IssueCardSkeleton key={i} />
@@ -152,42 +180,50 @@ const AllIssues = () => {
 
       {/* EMPTY STATE */}
       {!loading && issues.length === 0 && (
-        <p className="text-center opacity-60 mt-10">
-          No issues found
-        </p>
+        <div
+          className={`text-center mt-16 text-lg ${
+            dark ? "text-gray-400" : "text-gray-500"
+          }`}
+        >
+          No issues found matching your filters.
+        </div>
       )}
 
       {/* PAGINATION */}
-      <div className="flex items-center justify-center gap-3 mt-8">
+      <div className="flex items-center justify-center gap-4 mt-12">
         <button
           onClick={() => setPage((p) => Math.max(1, p - 1))}
           disabled={page === 1 || loading}
-          className={`px-3 py-1 rounded border disabled:opacity-40 ${
-            dark
-              ? "border-purple-400/40 hover:bg-[#222]"
-              : "border-gray-400 hover:bg-gray-100"
-          }`}
+          className={`px-5 py-2 rounded-xl font-medium transition disabled:opacity-40
+            ${
+              dark
+                ? "bg-[#1a1a1a] text-white hover:bg-[#222]"
+                : "bg-white border border-gray-300 hover:bg-gray-100"
+            }
+          `}
         >
-          Prev
+          ← Prev
         </button>
 
-        <span className="font-medium">
-          Page {page} / {totalPages}
+        <span className="font-semibold">
+          Page {page} of {totalPages}
         </span>
 
         <button
           onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
           disabled={page === totalPages || loading}
-          className={`px-3 py-1 rounded border disabled:opacity-40 ${
-            dark
-              ? "border-purple-400/40 hover:bg-[#222]"
-              : "border-gray-400 hover:bg-gray-100"
-          }`}
+          className={`px-5 py-2 rounded-xl font-medium transition disabled:opacity-40
+            ${
+              dark
+                ? "bg-[#1a1a1a] text-white hover:bg-[#222]"
+                : "bg-white border border-gray-300 hover:bg-gray-100"
+            }
+          `}
         >
-          Next
+          Next →
         </button>
       </div>
-    </div>
+    </section>
   );
 };
 

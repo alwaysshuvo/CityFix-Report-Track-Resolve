@@ -1,5 +1,10 @@
 import { motion } from "framer-motion";
-import { FaCheckCircle, FaUsers, FaBolt, FaMapMarkerAlt } from "react-icons/fa";
+import {
+  FaCheckCircle,
+  FaUsers,
+  FaBolt,
+  FaMapMarkerAlt,
+} from "react-icons/fa";
 import { useContext } from "react";
 import { ThemeContext } from "../../provider/ThemeContext";
 
@@ -8,104 +13,137 @@ const Features = () => {
 
   const items = [
     {
-      icon: (
-        <FaMapMarkerAlt
-          className={`text-3xl ${dark ? "text-purple-300" : "text-blue-600"}`}
-        />
-      ),
+      icon: <FaMapMarkerAlt />,
       title: "Smart Issue Reporting",
-      desc: "Report problems with photos, location and details instantly.",
+      desc: "Report problems instantly with photos, location, and detailed information.",
+      color: "from-indigo-500 to-purple-600",
     },
     {
-      icon: (
-        <FaBolt
-          className={`text-3xl ${dark ? "text-yellow-300" : "text-yellow-500"}`}
-        />
-      ),
+      icon: <FaBolt />,
       title: "Fast Response Workflow",
-      desc: "Admins assign staff and track status with real-time updates.",
+      desc: "Admins assign staff and track progress with real-time status updates.",
+      color: "from-yellow-400 to-orange-500",
     },
     {
-      icon: (
-        <FaUsers
-          className={`text-3xl ${dark ? "text-pink-300" : "text-purple-600"}`}
-        />
-      ),
+      icon: <FaUsers />,
       title: "Role-Based Dashboard",
-      desc: "Dedicated dashboards for Citizen, Staff and Admin.",
+      desc: "Dedicated dashboards for Citizens, Staff, and Administrators.",
+      color: "from-purple-500 to-pink-600",
     },
     {
-      icon: (
-        <FaCheckCircle
-          className={`text-3xl ${dark ? "text-green-300" : "text-green-600"}`}
-        />
-      ),
+      icon: <FaCheckCircle />,
       title: "Transparent Resolution",
-      desc: "Track lifecycle from Reported → Resolved with timeline.",
+      desc: "Track the entire lifecycle from Reported to Resolved with a clear timeline.",
+      color: "from-green-500 to-emerald-600",
     },
   ];
 
   return (
-    <section className="max-w-7xl mx-auto px-4 mt-20 transition-all duration-300">
-      {/* Section Title */}
-      <motion.h2
-        initial={{ opacity: 0, y: 40 }}
+    <section className="relative max-w-7xl mx-auto px-4 pt-28">
+      {/* SECTION HEADER */}
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
         viewport={{ once: true }}
-        className={`text-3xl md:text-4xl font-extrabold text-center mb-12 ${
-          dark ? "text-white" : "text-gray-800"
-        }`}
+        transition={{ duration: 0.7, ease: "easeOut" }}
+        className="text-center mb-16"
       >
-        Key Features of CityFix
-      </motion.h2>
+        <span
+          className={`text-sm font-semibold uppercase tracking-wide ${
+            dark ? "text-purple-400" : "text-indigo-600"
+          }`}
+        >
+          What You Get
+        </span>
 
-      {/* Grid */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <h2
+          className={`mt-2 text-3xl md:text-4xl font-extrabold ${
+            dark ? "text-white" : "text-gray-900"
+          }`}
+        >
+          Key Features of{" "}
+          <span
+            className={
+              dark
+                ? "bg-gradient-to-r from-purple-400 to-indigo-400 bg-clip-text text-transparent"
+                : "text-indigo-600"
+            }
+          >
+            CityFix
+          </span>
+        </h2>
+
+        <p
+          className={`mt-4 max-w-2xl mx-auto text-lg ${
+            dark ? "text-gray-400" : "text-gray-600"
+          }`}
+        >
+          Everything you need to report, track, and resolve public infrastructure
+          issues — built for transparency and speed.
+        </p>
+      </motion.div>
+
+      {/* FEATURE GRID */}
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
         {items.map((f, i) => (
           <motion.div
             key={i}
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.4, delay: i * 0.15 }}
-            whileHover={{ scale: 1.06, y: -6 }}
+            transition={{ duration: 0.6, delay: i * 0.1 }}
+            whileHover={{ y: -12 }}
             className={`
-              rounded-2xl p-6 border transition cursor-pointer text-center shadow-sm
+              group relative rounded-2xl p-7 text-center
+              border transition-all duration-300
               ${
                 dark
-                  ? "bg-[#111] border-purple-500/20 text-gray-200 hover:shadow-[0_0_15px_rgba(168,85,247,0.35)]"
-                  : "bg-white border-gray-200 text-gray-700 hover:shadow-xl"
+                  ? "bg-[#0f111a] border-white/10 text-gray-200 shadow-[0_0_22px_rgba(168,85,247,0.22)]"
+                  : "bg-white border-gray-200 text-gray-700 shadow hover:shadow-2xl"
               }
             `}
           >
-            {/* Circle Icon */}
+            {/* ICON */}
             <div
               className={`
-                mx-auto w-16 h-16 rounded-full flex items-center justify-center transition
-                ${dark ? "bg-[#1E1E1E]" : "bg-gray-100"}
+                mx-auto w-16 h-16 rounded-xl flex items-center justify-center
+                text-3xl text-white mb-6
+                bg-gradient-to-br ${f.color}
+                transition-transform duration-300
+                group-hover:scale-110
+                ${
+                  dark
+                    ? "shadow-[0_0_22px_rgba(168,85,247,0.35)]"
+                    : "shadow-md"
+                }
               `}
             >
               {f.icon}
             </div>
 
-            {/* Title */}
+            {/* TITLE */}
             <h3
-              className={`text-xl font-semibold mt-4 ${
-                dark ? "text-white" : "text-gray-800"
+              className={`text-xl font-semibold ${
+                dark ? "text-white" : "text-gray-900"
               }`}
             >
               {f.title}
             </h3>
 
-            {/* Description */}
+            {/* DESCRIPTION */}
             <p
-              className={`mt-2 text-sm leading-relaxed ${
+              className={`mt-3 text-sm leading-relaxed ${
                 dark ? "text-gray-400" : "text-gray-600"
               }`}
             >
               {f.desc}
             </p>
+
+            {/* BOTTOM ACCENT LINE */}
+            <span
+              className={`absolute inset-x-8 bottom-5 h-[2px] rounded-full
+                bg-gradient-to-r ${f.color} opacity-60`}
+            />
           </motion.div>
         ))}
       </div>

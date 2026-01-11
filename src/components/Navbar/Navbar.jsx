@@ -4,7 +4,7 @@ import { AuthContext } from "../../provider/AuthProvider";
 import { ThemeContext } from "../../provider/ThemeContext";
 import useRole from "../../hooks/useRole";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sun, Moon } from "lucide-react";
+import { Sun, Moon, Menu, X } from "lucide-react";
 import axios from "axios";
 
 const Navbar = () => {
@@ -32,76 +32,60 @@ const Navbar = () => {
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () =>
-      document.removeEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const navLinkClass = ({ isActive }) =>
-    isActive
-      ? `${
-          dark
-            ? "text-purple-300 border-b-2 border-purple-300"
-            : "text-black border-b-2 border-blue-600"
-        } font-semibold pb-1`
-      : `${
-          dark
-            ? "text-gray-300 hover:text-purple-300"
-            : "text-black hover:text-blue-600"
-        } transition`;
+    `relative font-medium transition ${
+      isActive
+        ? dark
+          ? "text-primary"
+          : "text-primary"
+        : dark
+        ? "text-gray-300 hover:text-primary"
+        : "text-gray-700 hover:text-primary"
+    }`;
 
   const getDashboardPath = () =>
-    role === "admin"
-      ? "/admin"
-      : role === "staff"
-      ? "/staff"
-      : "/dashboard";
+    role === "admin" ? "/admin" : role === "staff" ? "/staff" : "/dashboard";
 
   let userRoleLabel = role || "user";
   if (dbUser?.role === "citizen" && dbUser?.premium)
     userRoleLabel = "Premium Citizen";
-  if (dbUser?.role === "citizen" && !dbUser?.premium)
-    userRoleLabel = "Citizen";
+  if (dbUser?.role === "citizen" && !dbUser?.premium) userRoleLabel = "Citizen";
   if (dbUser?.role === "staff") userRoleLabel = "Staff";
   if (dbUser?.role === "admin") userRoleLabel = "Admin";
 
   return (
-    <div
-      className={`${
-        dark ? "bg-black text-white" : "bg-white text-black"
-      } fixed top-0 w-full z-50 shadow-md backdrop-blur transition`}
+    <header
+      className={`fixed top-0 w-full z-50 backdrop-blur-xl border-b shadow-[0_4px_30px_rgba(0,0,0,0.05)]
+  ${
+    dark
+      ? "bg-[#0B1220]/80 border-white/10 text-white"
+      : "bg-gradient-to-r from-blue-50/80 via-white/60 to-indigo-50/80 border-blue-100 text-gray-900"
+  }`}
     >
-      <div className="max-w-7xl mx-auto px-4 flex items-center h-16 justify-between">
-
-        {/* Left: Logo + Hamburger */}
+      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+        {/* LEFT */}
         <div className="flex items-center gap-3">
-          {/* Hamburger (mobile) */}
           <button
-            className="lg:hidden p-2 text-3xl"
             onClick={() => setMobile(true)}
+            className="lg:hidden p-2 rounded-lg hover:bg-primary/10"
           >
-            ☰
+            <Menu />
           </button>
 
-          {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
-            <img src="/logo.png" className="w-10 h-10" />
-            <span className="text-2xl font-extrabold select-none">
-              <span
-                className={dark ? "text-purple-300" : "text-blue-600"}
-              >
-                City
-              </span>
-              <span
-                className={dark ? "text-purple-400" : "text-indigo-700"}
-              >
-                Fix
-              </span>
+            <img src="/logo.png" className="w-9 h-9" />
+            <span className="text-2xl font-extrabold tracking-tight">
+              <span className="text-primary">City</span>
+              <span className="text-secondary">Fix</span>
             </span>
           </Link>
         </div>
 
-        {/* Desktop Nav */}
-        <ul className="hidden lg:flex gap-6 text-lg">
+        {/* CENTER */}
+        <nav className="hidden lg:flex gap-8">
           <NavLink to="/" className={navLinkClass}>
             Home
           </NavLink>
@@ -117,29 +101,23 @@ const Navbar = () => {
           <NavLink to="/about" className={navLinkClass}>
             About
           </NavLink>
-        </ul>
+        </nav>
 
-        {/* Right Section */}
+        {/* RIGHT */}
         <div className="flex items-center gap-2">
           <button
             onClick={toggleTheme}
-            className={`${
-              dark ? "hover:bg-[#222]" : "hover:bg-gray-100"
-            } btn btn-ghost btn-circle`}
+            className="p-2 rounded-lg hover:bg-primary/10 transition"
           >
-            {dark ? (
-              <Sun className="size-5 text-yellow-400" />
-            ) : (
-              <Moon className="size-5 text-gray-700" />
-            )}
+            {dark ? <Sun className="text-yellow-400" /> : <Moon />}
           </button>
 
           {!user && (
             <div className="hidden sm:flex gap-2">
-              <Link to="/login" className="btn btn-primary btn-sm">
+              <Link to="/login" className="btn btn-sm btn-outline">
                 Login
               </Link>
-              <Link to="/register" className="btn btn-outline btn-sm">
+              <Link to="/register" className="btn btn-sm btn-primary">
                 Register
               </Link>
             </div>
@@ -149,65 +127,57 @@ const Navbar = () => {
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setOpen(!open)}
-                className="btn btn-ghost btn-circle avatar"
+                className="flex items-center gap-2 p-1 rounded-full hover:bg-primary/10"
               >
                 <img
-                  src={
-                    user.photoURL ||
-                    "https://i.ibb.co/4pDNDk1/avatar.png"
-                  }
-                  className="w-10 h-10 rounded-full"
+                  src={user.photoURL || "https://i.ibb.co/4pDNDk1/avatar.png"}
+                  className="w-9 h-9 rounded-full border"
                 />
               </button>
 
               <AnimatePresence>
                 {open && (
                   <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 10 }}
-                    className={`${
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    className={`absolute right-0 mt-3 w-64 rounded-xl p-4 shadow-xl border
+                    ${
                       dark
-                        ? "bg-[#171717] border-[#2A2A2A] text-gray-200"
-                        : "bg-white border-gray-200 text-gray-800"
-                    } absolute right-0 mt-3 w-64 p-4 rounded-xl shadow-xl border`}
+                        ? "bg-[#111] border-white/10"
+                        : "bg-white border-gray-200"
+                    }`}
                   >
                     <p className="font-semibold">
                       {user.displayName || "CityFix User"}
                     </p>
-                    <p className="text-gray-500 mb-2">{user.email}</p>
+                    <p className="text-xs opacity-60">{user.email}</p>
 
                     {!roleLoading && (
-                      <span
-                        className={`${
-                          dbUser?.premium
-                            ? "bg-yellow-300 text-black"
-                            : "bg-blue-100 text-blue-600"
-                        } inline-block mb-3 text-xs px-2 py-1 rounded capitalize`}
-                      >
+                      <span className="inline-block mt-2 text-xs px-2 py-1 rounded bg-primary/10 text-primary">
                         {userRoleLabel}
                       </span>
                     )}
 
-                    <Link
-                      to={getDashboardPath()}
-                      onClick={() => setOpen(false)}
-                      className={`${
-                        dark ? "hover:bg-[#232323]" : "hover:bg-gray-100"
-                      } block px-3 py-2 rounded-md`}
-                    >
-                      Dashboard
-                    </Link>
+                    <div className="mt-4 space-y-1">
+                      <Link
+                        to={getDashboardPath()}
+                        onClick={() => setOpen(false)}
+                        className="block px-3 py-2 rounded-lg hover:bg-primary/10"
+                      >
+                        Dashboard
+                      </Link>
 
-                    <button
-                      onClick={() => {
-                        logoutUser();
-                        setOpen(false);
-                      }}
-                      className="block w-full px-3 py-2 text-red-600 rounded-md hover:bg-red-100 dark:hover:bg-red-900/40"
-                    >
-                      Logout
-                    </button>
+                      <button
+                        onClick={() => {
+                          logoutUser();
+                          setOpen(false);
+                        }}
+                        className="block w-full text-left px-3 py-2 rounded-lg text-red-500 hover:bg-red-500/10"
+                      >
+                        Logout
+                      </button>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -216,66 +186,61 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Drawer */}
+      {/* MOBILE MENU */}
       <AnimatePresence>
         {mobile && (
           <motion.div
             initial={{ x: "100%" }}
             animate={{ x: "0%" }}
             exit={{ x: "100%" }}
-            transition={{ duration: 0.3 }}
-            className={`${
-              dark ? "bg-black text-white" : "bg-white text-black"
-            } fixed top-0 right-0 w-64 h-full shadow-xl p-6 z-50`}
+            className={`fixed inset-y-0 right-0 w-72 p-6 z-50 shadow-xl
+            ${dark ? "bg-[#0B0B0B]" : "bg-white"}`}
           >
-            <button
-              className="text-3xl mb-6"
-              onClick={() => setMobile(false)}
-            >
-              ✕
+            <button onClick={() => setMobile(false)} className="mb-6">
+              <X />
             </button>
 
-            <ul className="flex flex-col gap-5 text-lg">
+            <nav className="flex flex-col gap-5 text-lg">
               <NavLink
-                to="/"
                 onClick={() => setMobile(false)}
+                to="/"
                 className={navLinkClass}
               >
                 Home
               </NavLink>
               <NavLink
-                to="/all-issues"
                 onClick={() => setMobile(false)}
+                to="/all-issues"
                 className={navLinkClass}
               >
                 All Issues
               </NavLink>
               <NavLink
-                to="/contact"
                 onClick={() => setMobile(false)}
+                to="/contact"
                 className={navLinkClass}
               >
                 Contact
               </NavLink>
               <NavLink
-                to="/faq"
                 onClick={() => setMobile(false)}
+                to="/faq"
                 className={navLinkClass}
               >
                 FAQ
               </NavLink>
               <NavLink
-                to="/about"
                 onClick={() => setMobile(false)}
+                to="/about"
                 className={navLinkClass}
               >
                 About
               </NavLink>
-            </ul>
+            </nav>
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </header>
   );
 };
 

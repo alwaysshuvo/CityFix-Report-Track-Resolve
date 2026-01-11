@@ -7,6 +7,9 @@ import HowItWorks from "../../components/HowItWorks/HowItWorks";
 import ExtraOne from "../../components/Extras/ExtraOne";
 import ExtraTwo from "../../components/Extras/ExtraTwo";
 import { ThemeContext } from "../../provider/ThemeContext";
+import Statistics from "../../components/Extras/Statistics";
+import Testimonials from "../../components/Extras/Testimonials";
+import Newsletter from "../../components/Extras/Newsletter";
 
 const Home = () => {
   const { dark } = useContext(ThemeContext);
@@ -24,7 +27,11 @@ const Home = () => {
       <Features />
       <HowItWorks />
       <ExtraOne />
+      <Statistics />
+      <Testimonials />
+      <Newsletter />
       <ExtraTwo />
+      
     </div>
   );
 };

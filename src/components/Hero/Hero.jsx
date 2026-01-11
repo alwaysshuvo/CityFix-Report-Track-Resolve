@@ -9,67 +9,83 @@ const Hero = () => {
   return (
     <section
       className={`
-        min-h-[90vh] flex items-center pt-28 px-5 transition-all duration-300
-        ${
-          dark
-            ? "bg-[#0B0B0B] text-white"
-            : "bg-gradient-to-br from-blue-100 via-white to-purple-100 text-black"
-        }
+        relative flex items-center overflow-hidden
+        min-h-[100vh] pt-32 pb-24 px-5
+        transition-colors duration-300
+        ${dark ? "bg-[#07090f] text-white" : "bg-gray-50 text-gray-900"}
       `}
     >
-      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+      {/* ===== Ambient Gradient Background ===== */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -top-40 -left-40 w-[520px] h-[520px] bg-indigo-500/20 rounded-full blur-[140px]" />
+        <div className="absolute top-1/3 -right-40 w-[520px] h-[520px] bg-purple-500/20 rounded-full blur-[140px]" />
+        {!dark && (
+          <div className="absolute bottom-0 left-1/3 w-[480px] h-[480px] bg-blue-300/20 rounded-full blur-[160px]" />
+        )}
+      </div>
 
-        {/* LEFT */}
+      <div className="relative max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+        {/* ================= LEFT CONTENT ================= */}
         <motion.div
-          initial={{ opacity: 0, x: -40 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6 }}
-          className="space-y-6 text-center lg:text-left"
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="space-y-8 text-center lg:text-left"
         >
-          <h1
+          {/* Eyebrow */}
+          <span
             className={`
-              text-4xl lg:text-5xl font-extrabold leading-tight
-              ${dark ? "text-white" : "text-gray-800"}
+              inline-block text-sm font-semibold tracking-wide uppercase
+              ${dark ? "text-indigo-400" : "text-indigo-600"}
             `}
           >
+            Smart City Platform
+          </span>
+
+          {/* Heading */}
+          <h1 className="text-4xl md:text-5xl xl:text-6xl font-extrabold leading-tight">
             Report Public Issues <br />
-            <span
-              className={dark ? "text-purple-300" : "text-indigo-600"}
-            >
+            <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
               Track Progress in Real-Time
             </span>
           </h1>
 
+          {/* Description */}
           <p
             className={`
-              text-lg max-w-lg
-              ${dark ? "text-gray-400" : "text-gray-600"}
+              max-w-xl mx-auto lg:mx-0 text-lg leading-relaxed
+              ${dark ? "text-gray-300" : "text-gray-600"}
             `}
           >
-            Raise complaints about streetlights, water leakage, damaged roads, 
-            garbage overflow — and let the authority fix them fast.
+            Report streetlights, water leaks, damaged roads or garbage overflow —
+            and transparently track how authorities resolve them.
           </p>
 
-          {/* BUTTONS */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+          {/* CTA */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-2">
             <Link
-              className={`
-                px-6 py-3 rounded-xl font-semibold transition
-                ${dark
-                  ? "bg-purple-600 hover:bg-purple-700 text-white"
-                  : "bg-indigo-600 hover:bg-indigo-700 text-white"}
-              `}
+              to="/dashboard/report-issue"
+              className="
+                inline-flex items-center justify-center gap-2
+                px-8 py-3 rounded-xl font-semibold text-white
+                bg-gradient-to-r from-indigo-500 to-purple-600
+                hover:opacity-90 transition
+                shadow-lg shadow-indigo-500/30
+              "
             >
-              Report an Issue
+              🚨 Report an Issue
             </Link>
 
             <Link
+              to="/all-issues"
               className={`
-                px-6 py-3 rounded-xl font-semibold border transition
+                inline-flex items-center justify-center
+                px-8 py-3 rounded-xl font-semibold
+                border transition
                 ${
                   dark
-                    ? "border-purple-500 text-purple-300 hover:bg-[#222]"
-                    : "border-indigo-600 text-indigo-600 hover:bg-indigo-50"
+                    ? "border-white/20 text-white hover:bg-white/10"
+                    : "border-gray-300 text-gray-800 hover:bg-gray-100"
                 }
               `}
             >
@@ -77,45 +93,55 @@ const Hero = () => {
             </Link>
           </div>
 
-          {/* BADGES */}
-          <div className="flex items-center justify-center lg:justify-start gap-4 pt-4">
-            {[
-              "⚡ Fast Response",
-              "🔒 Secure Reports",
-              "📍 Live Tracking",
-            ].map((item, i) => (
-              <div
-                key={i}
-                className={`
-                  p-3 rounded-xl shadow text-sm font-medium transition
-                  ${
-                    dark
-                      ? "bg-[#1A1A1A] text-gray-300 shadow-[0_0_10px_rgba(168,85,247,0.25)]"
-                      : "bg-white text-gray-700"
-                  }
-                `}
-              >
-                {item}
-              </div>
-            ))}
+          {/* Trust / Feature Pills */}
+          <div className="flex flex-wrap justify-center lg:justify-start gap-4 pt-8">
+            {["⚡ Fast Response", "🔒 Secure Reports", "📍 Live Tracking"].map(
+              (item, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 + i * 0.12 }}
+                  className={`
+                    px-4 py-2 rounded-full text-sm font-medium backdrop-blur
+                    ${
+                      dark
+                        ? "bg-white/10 text-gray-200"
+                        : "bg-white text-gray-700 shadow-sm"
+                    }
+                  `}
+                >
+                  {item}
+                </motion.div>
+              )
+            )}
           </div>
         </motion.div>
 
-        {/* RIGHT IMAGE */}
+        {/* ================= RIGHT VISUAL ================= */}
         <motion.div
-          initial={{ opacity: 0, x: 40 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6 }}
-          className="w-full flex justify-center"
+          initial={{ opacity: 0, scale: 0.92 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="relative flex justify-center"
         >
+          {/* Image Glow */}
+          <div
+            className={`
+              absolute inset-0 rounded-3xl blur-2xl
+              ${dark ? "bg-indigo-500/20" : "bg-indigo-300/30"}
+            `}
+          />
+
           <img
             src="https://i.ibb.co.com/Xr4xZxtD/Gemini-Generated-Image-muaiqhmuaiqhmuai.png"
+            alt="City illustration"
             className={`
-              max-w-md rounded-xl w-[600px] h-[400px] object-cover transition
+              relative w-[520px] max-w-full rounded-3xl
               ${
                 dark
-                  ? "drop-shadow-[0_0_25px_rgba(168,85,247,0.3)]"
-                  : "drop-shadow-lg"
+                  ? "shadow-[0_0_60px_rgba(99,102,241,0.45)]"
+                  : "shadow-2xl"
               }
             `}
           />
