@@ -5,7 +5,7 @@ import IssueCardSkeleton from "../../components/skeletons/IssueCardSkeleton";
 import { ThemeContext } from "../../provider/ThemeContext";
 import { FiSearch } from "react-icons/fi";
 
-const PAGE_SIZE = 6;
+const PAGE_SIZE = 8;
 
 const AllIssues = () => {
   const { dark } = useContext(ThemeContext);
@@ -165,8 +165,8 @@ const AllIssues = () => {
         </select>
       </div>
 
-      {/* GRID */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+      {/* GRID (UPDATED 👇) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {loading &&
           Array.from({ length: PAGE_SIZE }).map((_, i) => (
             <IssueCardSkeleton key={i} />
