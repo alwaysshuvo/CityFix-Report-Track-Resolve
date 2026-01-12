@@ -7,6 +7,7 @@ import useRole from "../../hooks/useRole";
 import { AuthContext } from "../../provider/AuthProvider";
 import { ThemeContext } from "../../provider/ThemeContext";
 import IssueDetailsSkeleton from "../../components/skeletons/IssueDetailsSkeleton";
+import RelatedIssues from "../../components/issue/RelatedIssues";
 
 const IssueDetails = () => {
   const { id } = useParams();
@@ -17,9 +18,9 @@ const IssueDetails = () => {
   const { dark } = useContext(ThemeContext);
   const email = user?.email;
 
-  /** ==========================
-   * LOAD ISSUE (TanStack Query)
-   =========================== */
+  /* =========================
+     LOAD ISSUE
+  ========================= */
   const {
     data: issue,
     isLoading,
@@ -34,20 +35,16 @@ const IssueDetails = () => {
     },
   });
 
-  /** ==========================
-   * UPVOTE
-   =========================== */
+  /* =========================
+     UPVOTE
+  ========================= */
   const upvoteMutation = useMutation({
-    mutationFn: async () => {
-      return axios.patch(
-        `${import.meta.env.VITE_API_BASE}/issues/upvote/${id}`,
-        {
-          email,
-        }
-      );
-    },
+    mutationFn: async () =>
+      axios.patch(`${import.meta.env.VITE_API_BASE}/issues/upvote/${id}`, {
+        email,
+      }),
     onSuccess: () => {
-      Swal.fire("Success", "Upvoted!", "success");
+      Swal.fire("Success", "Upvoted successfully!", "success");
       queryClient.invalidateQueries(["issue", id]);
     },
     onError: (err) => {
@@ -60,20 +57,20 @@ const IssueDetails = () => {
     upvoteMutation.mutate();
   };
 
-  /** ==========================
-   * BOOST (Stripe Checkout)
-   =========================== */
+  /* =========================
+     BOOST
+  ========================= */
   const handleBoost = async () => {
     if (!email) return navigate("/login");
     if (issue.priority === "high")
-      return Swal.fire("Info", "Already boosted", "info");
+      return Swal.fire("Info", "Issue already boosted", "info");
 
     const confirm = await Swal.fire({
       title: "Boost Priority?",
       text: "Pay 100 BDT to highlight this issue",
       icon: "question",
       showCancelButton: true,
-      confirmButtonText: "Proceed to Pay",
+      confirmButtonText: "Proceed",
     });
 
     if (!confirm.isConfirmed) return;
@@ -81,68 +78,61 @@ const IssueDetails = () => {
     try {
       const res = await axios.post(
         `${import.meta.env.VITE_API_BASE}/issues/boost`,
-        {
-          email,
-          issueId: id,
-        }
+        { email, issueId: id }
       );
 
-      if (res.data.url) {
-        window.location.href = res.data.url;
-      }
-    } catch (err) {
+      if (res.data.url) window.location.href = res.data.url;
+    } catch {
       Swal.fire("Payment Failed", "Try again later", "error");
     }
   };
 
-  /** ==========================
-   * DELETE (only reporter+pending)
-   =========================== */
+  /* =========================
+     DELETE (Citizen)
+  ========================= */
   const handleDelete = async () => {
     const ok = await Swal.fire({
       title: "Delete Issue?",
-      text: "This cannot be undone",
+      text: "This action cannot be undone",
+      icon: "warning",
       showCancelButton: true,
       confirmButtonText: "Delete",
-      icon: "warning",
     });
     if (!ok.isConfirmed) return;
 
     await axios.delete(`${import.meta.env.VITE_API_BASE}/issues/${id}`);
-    Swal.fire("Deleted!", "Issue removed", "success");
+    Swal.fire("Deleted", "Issue removed successfully", "success");
     navigate("/dashboard/my-issues");
   };
 
-  /** ==========================
-   * ADMIN REJECT ISSUE
-   =========================== */
+  /* =========================
+     ADMIN REJECT
+  ========================= */
   const handleReject = async () => {
     const ok = await Swal.fire({
-      title: "Reject?",
-      text: "Mark as rejected?",
+      title: "Reject Issue?",
+      icon: "warning",
       showCancelButton: true,
       confirmButtonText: "Reject",
-      icon: "warning",
     });
     if (!ok.isConfirmed) return;
 
     await axios.patch(`${import.meta.env.VITE_API_BASE}/issues/reject/${id}`);
-    Swal.fire("Done", "Issue rejected", "success");
+    Swal.fire("Rejected", "Issue has been rejected", "success");
     refetch();
   };
 
-  /** ==========================
-   * STAFF / ADMIN STATUS WORKFLOW
-   =========================== */
+  /* =========================
+     STATUS UPDATE
+  ========================= */
   const statusMutation = useMutation({
-    mutationFn: async (nextStatus) => {
-      return axios.patch(
-        `${import.meta.env.VITE_API_BASE}/issues/status/${id}`,
-        { status: nextStatus, by: email }
-      );
-    },
+    mutationFn: async (status) =>
+      axios.patch(`${import.meta.env.VITE_API_BASE}/issues/status/${id}`, {
+        status,
+        by: email,
+      }),
     onSuccess: () => {
-      Swal.fire("Updated!", "Status changed", "success");
+      Swal.fire("Updated", "Status updated successfully", "success");
       queryClient.invalidateQueries(["issue", id]);
     },
   });
@@ -155,120 +145,143 @@ const IssueDetails = () => {
     "closed",
   ];
 
-  /** UI Loading States */
-  if (isLoading) {
-    return <IssueDetailsSkeleton />;
-  }
-
-  if (!issue) return <p className="text-center mt-20">Not Found</p>;
+  if (isLoading) return <IssueDetailsSkeleton />;
+  if (!issue) return <p className="text-center mt-20">Issue not found</p>;
 
   return (
-    <div
-      className={`max-w-5xl mx-auto p-6 rounded-xl shadow mt-10 ${
-        dark ? "bg-[#111] text-white" : "bg-white text-gray-900"
-      }`}
-    >
-      {/* TITLE */}
-      <h1 className="text-3xl font-bold mb-3">{issue.title}</h1>
+    <section className="max-w-5xl mx-auto px-4 py-10">
+      <div
+        className={`rounded-3xl border shadow-xl p-6 md:p-8 transition ${
+          dark
+            ? "bg-[#111] border-purple-500/20 text-white"
+            : "bg-white border-gray-200 text-gray-900"
+        }`}
+      >
+        {/* TITLE */}
+        <h1 className="text-3xl font-extrabold mb-4">{issue.title}</h1>
 
-      {/* IMAGE */}
-      {issue.image && (
-        <img
-          src={issue.image}
-          className="rounded-xl w-full h-80 object-cover mb-4"
-        />
-      )}
-
-      {/* BADGES */}
-      <div className="flex flex-wrap gap-3 mb-5">
-        <span className="badge badge-info">Status: {issue.status}</span>
-        <span className="badge badge-warning">Priority: {issue.priority}</span>
-        <span className="badge badge-outline capitalize">{issue.category}</span>
-        <span className="badge">📍 {issue.location}</span>
-        <span className="badge badge-primary">
-          Upvotes: {issue.upvotes?.length || 0}
-        </span>
-      </div>
-
-      {/* DESCRIPTION */}
-      <p className="mb-4">{issue.description}</p>
-
-      {/* REPORTER INFO */}
-      <h3 className="font-semibold mt-2">Reported By</h3>
-      <p className="opacity-75">{issue.reporterEmail}</p>
-
-      {/* ASSIGNED STAFF */}
-      <h3 className="font-semibold mt-4">Assigned Staff</h3>
-      {issue.assignedStaff ? (
-        <p>
-          {issue.assignedStaff.name} ({issue.assignedStaff.email})
-        </p>
-      ) : (
-        <p className="italic opacity-60">Not Assigned</p>
-      )}
-
-      {/* ACTION BUTTONS */}
-      <div className="flex flex-wrap gap-2 mt-6">
-        {/* UPVOTE */}
-        <button className="btn btn-primary btn-sm" onClick={handleUpvote}>
-          👍 Upvote ({issue.upvotes?.length})
-        </button>
-
-        {/* BOOST */}
-        <button className="btn btn-warning btn-sm" onClick={handleBoost}>
-          🚀 Boost (100 BDT)
-        </button>
-
-        {/* DELETE (Citizen owner only & pending) */}
-        {email === issue.reporterEmail && issue.status === "pending" && (
-          <button className="btn btn-error btn-sm" onClick={handleDelete}>
-            Delete
-          </button>
+        {/* IMAGE */}
+        {issue.image && (
+          <img
+            src={issue.image}
+            alt={issue.title}
+            className="w-full h-80 object-cover rounded-xl mb-6"
+          />
         )}
 
-        {/* ADMIN Reject if pending */}
-        {role === "admin" && issue.status === "pending" && (
-          <button className="btn btn-error btn-sm" onClick={handleReject}>
-            Reject
-          </button>
-        )}
+        {/* META */}
+        <div className="flex flex-wrap gap-3 mb-6">
+          <span className="badge badge-info capitalize">
+            Status: {issue.status}
+          </span>
+          <span className="badge badge-warning capitalize">
+            Priority: {issue.priority}
+          </span>
+          <span className="badge badge-outline capitalize">
+            {issue.category}
+          </span>
+          <span className="badge">📍 {issue.location}</span>
+          <span className="badge badge-primary">
+            👍 {issue.upvotes?.length || 0}
+          </span>
+        </div>
 
-        {/* STAFF / ADMIN STATUS CONTROLS */}
-        {(role === "staff" || role === "admin") && (
-          <select
-            className="select select-bordered select-sm"
-            onChange={(e) => statusMutation.mutate(e.target.value)}
-            defaultValue=""
-          >
-            <option value="" disabled>
-              Change Status
-            </option>
-            {allowedStatus.map((s) => (
-              <option key={s} value={s}>
-                {s}
+        {/* DESCRIPTION */}
+        <div className="mb-6">
+          <h3 className="font-semibold mb-1">Description</h3>
+          <p className="opacity-80 leading-relaxed">{issue.description}</p>
+        </div>
+
+        {/* INFO GRID */}
+        <div className="grid md:grid-cols-2 gap-6 mb-8">
+          <div>
+            <h4 className="font-semibold">Reported By</h4>
+            <p className="opacity-70">{issue.reporterEmail}</p>
+          </div>
+
+          <div>
+            <h4 className="font-semibold">Assigned Staff</h4>
+            {issue.assignedStaff ? (
+              <p className="opacity-70">
+                {issue.assignedStaff.name} ({issue.assignedStaff.email})
+              </p>
+            ) : (
+              <p className="italic opacity-50">Not assigned yet</p>
+            )}
+          </div>
+        </div>
+
+        {/* ACTIONS */}
+        <div className="flex flex-wrap gap-3 mb-10">
+          <button className="btn btn-primary btn-sm" onClick={handleUpvote}>
+            👍 Upvote
+          </button>
+
+          <button className="btn btn-warning btn-sm" onClick={handleBoost}>
+            🚀 Boost (100 BDT)
+          </button>
+
+          {email === issue.reporterEmail && issue.status === "pending" && (
+            <button className="btn btn-error btn-sm" onClick={handleDelete}>
+              Delete
+            </button>
+          )}
+
+          {role === "admin" && issue.status === "pending" && (
+            <button className="btn btn-error btn-sm" onClick={handleReject}>
+              Reject
+            </button>
+          )}
+
+          {(role === "staff" || role === "admin") && (
+            <select
+              className="select select-bordered select-sm"
+              defaultValue=""
+              onChange={(e) => statusMutation.mutate(e.target.value)}
+            >
+              <option disabled value="">
+                Change Status
               </option>
-            ))}
-          </select>
-        )}
-      </div>
+              {allowedStatus.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
 
-      {/* TIMELINE */}
-      <h2 className="text-2xl font-semibold mt-10 mb-3">📌 Issue Timeline</h2>
-      <div className="border-l-4 pl-4 space-y-4">
-        {issue.timeline
-          ?.slice()
-          .reverse()
-          .map((log, idx) => (
-            <div key={idx} className="border rounded p-3">
-              <p className="capitalize font-semibold">{log.status}</p>
-              <p>{log.message}</p>
-              <small className="opacity-50">
-                {log.by} — {new Date(log.time).toLocaleString()}
-              </small>
-            </div>
-          ))}
+        {/* TIMELINE */}
+        <h2 className="text-2xl font-semibold mb-4">📌 Issue Timeline</h2>
+        <div className="space-y-4 border-l-4 border-purple-500/40 pl-4">
+          {issue.timeline?.length ? (
+            issue.timeline
+              .slice()
+              .reverse()
+              .map((log, i) => (
+                <div
+                  key={i}
+                  className={`p-4 rounded-xl border ${
+                    dark
+                      ? "bg-[#1a1a1a] border-purple-500/20"
+                      : "bg-gray-50 border-gray-200"
+                  }`}
+                >
+                  <p className="font-semibold capitalize">{log.status}</p>
+                  <p className="text-sm opacity-80">{log.message}</p>
+                  <p className="text-xs opacity-50 mt-1">
+                    {log.by} • {new Date(log.time).toLocaleString()}
+                  </p>
+                </div>
+              ))
+          ) : (
+            <p className="italic opacity-60">No timeline updates yet</p>
+          )}
+        </div>
+        {/* RELATED ISSUES */}
+        <RelatedIssues category={issue.category} currentId={issue._id} />
       </div>
-    </div>
+    </section>
   );
 };
 
